@@ -44,10 +44,10 @@ namespace Adapters.w3gFiles.Tests
         {
             var w3GFileReader = new W3GFileReader(new W3GFileMapping());
             var game = await w3GFileReader.Read("TestGames/1_29.w3g");
-            Assert.AreEqual("modmoto", game.Players.ToList()[0].Name);
-            Assert.AreEqual(1, game.Players.ToList()[0].PlayerId);
-            Assert.AreEqual(GameMode.Ladder, game.Players.ToList()[0].GameType);
-            Assert.AreEqual(Race.NightElve, game.Players.ToList()[0].Race);
+            Assert.AreEqual("modmoto", game.Host.Name);
+            Assert.AreEqual(1, game.Host.PlayerId);
+            Assert.AreEqual(GameMode.Ladder, game.Host.GameType);
+            Assert.AreEqual(Race.NightElve, game.Host.Race);
         }
     }
 }

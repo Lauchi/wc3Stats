@@ -26,9 +26,9 @@ namespace Adapters.w3gFiles
             var version = _mapping.GetVersion();
             var isMultiPlayer = _mapping.GetIsMultiPlayer();
             var time = _mapping.GetPlayedTime();
-            var players = _mapping.GetPlayers();
+            var host = _mapping.GetHost();
 
-            return new Wc3Game(players, expansionType, version, isMultiPlayer, time);
+            return new Wc3Game(host, expansionType, version, isMultiPlayer, time);
         }
     }
 
@@ -83,13 +83,12 @@ namespace Adapters.w3gFiles
             return timeSpan;
         }
 
-        public IEnumerable<Player> GetPlayers()
+        public Player GetHost()
         {
             var contentSize = _fileBytesContent.Word(0x0000);
             var zippedContent = _fileBytesContent.Skip(0x0008).Take(contentSize).ToArray();
             var decompress = DecompressZLibRaw(zippedContent).ToList();
 
-            int playerOffset = 0;
             var playerId = BitConverter.ToUInt32(new byte[] {decompress[5], 0, 0, 0 }, 0);
             var playerData = decompress.Skip(6).ToArray();
             var name = playerData.UntilNull();
@@ -112,7 +111,6 @@ namespace Adapters.w3gFiles
             {
                 case GameMode.Custom:
                     race = Race.CustomGame;
-                    playerOffset += playerOffset + gameTypeIndex + 1;
                     break;
                 case GameMode.Ladder:
                 {
@@ -127,12 +125,11 @@ namespace Adapters.w3gFiles
                         case 0x20: race = Race.Random; break;
                         case 0x40: race = Race.Fixed; break;
                     }
-                    playerOffset += playerOffset + gameTypeIndex + 8;
                     break;
                 }
             }
 
-            yield return new Player(name, playerId, gameType, race);
+            return new Player(name, playerId, gameType, race);
         }
 
         public static byte[] DecompressZLibRaw(byte[] bCompressed)
@@ -199,11 +196,11 @@ namespace Adapters.w3gFiles
 
     public class Wc3Game
     {
-        public Wc3Game(IEnumerable<Player> players, ExpansionType expansionType, GameVersion version,
+        public Wc3Game(Player host, ExpansionType expansionType, GameVersion version,
             PlayerMode playerMode,
             TimeSpan gameTime)
         {
-            Players = players;
+            Host = host;
             ExpansionType = expansionType;
             Version = version;
             PlayerMode = playerMode;
@@ -214,7 +211,7 @@ namespace Adapters.w3gFiles
         public GameVersion Version { get; }
         public PlayerMode PlayerMode { get; }
         public TimeSpan GameTime { get; }
-        public IEnumerable<Player> Players { get; }
+        public Player Host { get; }
     }
 
     public class Player
