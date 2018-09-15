@@ -1,3 +1,4 @@
+using System;
 using NUnit.Framework;
 
 namespace Adapters.w3gFiles.Tests
@@ -26,6 +27,14 @@ namespace Adapters.w3gFiles.Tests
             var w3GFileReader = new W3GFileReader(new W3GFileMapping());
             var game = w3GFileReader.Read("TestGames/1_29.w3g");
             Assert.AreEqual(PlayerMode.MultiPlayer, game.PlayerMode);
+        }
+
+        [Test]
+        public void TestReadTime()
+        {
+            var w3GFileReader = new W3GFileReader(new W3GFileMapping());
+            var game = w3GFileReader.Read("TestGames/1_29.w3g");
+            Assert.AreEqual(new TimeSpan(0, 0, 12, 14, 325), game.GameTime);
         }
     }
 }

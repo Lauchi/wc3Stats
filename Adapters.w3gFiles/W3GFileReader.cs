@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 
 namespace Adapters.w3gFiles
@@ -22,14 +23,16 @@ namespace Adapters.w3gFiles
             var expansionType = _mapping.GetExpansionType();
             var version = _mapping.GetVersion();
             var isMultiPlayer = _mapping.GetIsMultiPlayer();
+            var time = _mapping.GetPlayedTime();
 
-            return new Wc3Game(expansionType, version, isMultiPlayer);
+            return new Wc3Game(expansionType, version, isMultiPlayer, time);
         }
     }
 
     public class W3GFileMapping
     {
         private byte[] _fileBytes;
+        private byte[] _fileBytesHeader;
 
         public ExpansionType GetExpansionType()
         {
@@ -44,15 +47,17 @@ namespace Adapters.w3gFiles
 
         public GameVersion GetVersion()
         {
-            var majorVersion = BitConverter.ToUInt32(_fileBytes, 52);
-            var buildVersion = BitConverter.ToUInt16(_fileBytes, 56);
+            var startIndex = 0x0004;
+            Console.WriteLine(startIndex);
+            var majorVersion = BitConverter.ToUInt32(_fileBytesHeader, startIndex);
+            var buildVersion = BitConverter.ToUInt16(_fileBytesHeader, 0x0008);
 
             return new GameVersion(majorVersion, buildVersion);
         }
 
         public PlayerMode GetIsMultiPlayer()
         {
-            var uInt32 = BitConverter.ToUInt16(_fileBytes, 58);
+            var uInt32 = BitConverter.ToUInt16(_fileBytesHeader, 0x000A);
             switch (uInt32)
             {
                     case 0x0 : return PlayerMode.SinglePlayer;
@@ -64,6 +69,14 @@ namespace Adapters.w3gFiles
         public void SetBytes(byte[] fileBytes)
         {
             _fileBytes = fileBytes;
+            _fileBytesHeader = fileBytes.Skip(48).ToArray();
+        }
+
+        public TimeSpan GetPlayedTime()
+        {
+            var milliseconds = BitConverter.ToUInt32(_fileBytesHeader, 0x000C);
+            var timeSpan = new TimeSpan(0,0,0,0,(int) milliseconds);
+            return timeSpan;
         }
     }
 
@@ -95,12 +108,14 @@ namespace Adapters.w3gFiles
         public ExpansionType ExpansionType { get; }
         public GameVersion Version { get; }
         public PlayerMode PlayerMode { get; }
+        public TimeSpan GameTime { get; }
 
-        public Wc3Game(ExpansionType expansionType, GameVersion version, PlayerMode playerMode)
+        public Wc3Game(ExpansionType expansionType, GameVersion version, PlayerMode playerMode, TimeSpan gameTime)
         {
             ExpansionType = expansionType;
             Version = version;
             PlayerMode = playerMode;
+            GameTime = gameTime;
         }
 
         public IEnumerable<Player> Players { get; }
