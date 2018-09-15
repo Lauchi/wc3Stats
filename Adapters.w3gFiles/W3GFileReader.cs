@@ -47,17 +47,15 @@ namespace Adapters.w3gFiles
 
         public GameVersion GetVersion()
         {
-            var startIndex = 0x0004;
-            Console.WriteLine(startIndex);
-            var majorVersion = BitConverter.ToUInt32(_fileBytesHeader, startIndex);
-            var buildVersion = BitConverter.ToUInt16(_fileBytesHeader, 0x0008);
+            var majorVersion = _fileBytesHeader.DWord(0x0004);
+            var buildVersion = _fileBytesHeader.Word(0x0008);
 
             return new GameVersion(majorVersion, buildVersion);
         }
 
         public PlayerMode GetIsMultiPlayer()
         {
-            var uInt32 = BitConverter.ToUInt16(_fileBytesHeader, 0x000A);
+            var uInt32 = _fileBytesHeader.Word(0x000A);
             switch (uInt32)
             {
                     case 0x0 : return PlayerMode.SinglePlayer;
@@ -74,7 +72,7 @@ namespace Adapters.w3gFiles
 
         public TimeSpan GetPlayedTime()
         {
-            var milliseconds = BitConverter.ToUInt32(_fileBytesHeader, 0x000C);
+            var milliseconds = _fileBytesHeader.DWord(0x000C);
             var timeSpan = new TimeSpan(0,0,0,0,(int) milliseconds);
             return timeSpan;
         }
