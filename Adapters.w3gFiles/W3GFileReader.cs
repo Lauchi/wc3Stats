@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace Adapters.w3gFiles
 {
@@ -15,23 +17,25 @@ namespace Adapters.w3gFiles
             _mapping = mapping;
         }
 
-        public Wc3Game Read(string filePath)
+        public async Task<Wc3Game> Read(string filePath)
         {
-            var fileBytes = File.ReadAllBytes(filePath);
+            var fileBytes = await File.ReadAllBytesAsync(filePath);
             _mapping.SetBytes(fileBytes);
 
             var expansionType = _mapping.GetExpansionType();
             var version = _mapping.GetVersion();
             var isMultiPlayer = _mapping.GetIsMultiPlayer();
             var time = _mapping.GetPlayedTime();
+            var players = _mapping.GetPlayers();
 
-            return new Wc3Game(expansionType, version, isMultiPlayer, time);
+            return new Wc3Game(players, expansionType, version, isMultiPlayer, time);
         }
     }
 
     public class W3GFileMapping
     {
         private byte[] _fileBytes;
+        private byte[] _fileBytesContent;
         private byte[] _fileBytesHeader;
 
         public ExpansionType GetExpansionType()
@@ -68,7 +72,8 @@ namespace Adapters.w3gFiles
         public void SetBytes(byte[] fileBytes)
         {
             _fileBytes = fileBytes;
-            _fileBytesHeader = fileBytes.Skip(48).ToArray();
+            _fileBytesHeader = fileBytes.Skip(0x30).ToArray();
+            _fileBytesContent = fileBytes.Skip(0x44).ToArray();
         }
 
         public TimeSpan GetPlayedTime()
@@ -77,12 +82,100 @@ namespace Adapters.w3gFiles
             var timeSpan = new TimeSpan(0, 0, 0, 0, (int) milliseconds);
             return timeSpan;
         }
+
+        public IEnumerable<Player> GetPlayers()
+        {
+            var contentSize = _fileBytesContent.Word(0x0000);
+            var zippedContent = _fileBytesContent.Skip(0x0008).Take(contentSize).ToArray();
+            var decompress = DecompressZLibRaw(zippedContent).ToList();
+
+            int playerOffset = 0;
+            var playerId = BitConverter.ToUInt32(new byte[] {decompress[5], 0, 0, 0 }, 0);
+            var playerData = decompress.Skip(6).ToArray();
+            var name = playerData.UntilNull();
+            var gameTypeIndex = name.Length + 7;
+            var b = decompress[gameTypeIndex];
+            GameMode gameType;
+            switch (b)
+            {
+                case 0x01:
+                    gameType = GameMode.Custom;
+                    break;
+                case 0x08:
+                    gameType = GameMode.Ladder;
+                    break;
+                default: throw new ArgumentException("Not clear if leader or custom game");
+            }
+
+            Race race = Race.CustomGame;
+            switch (gameType)
+            {
+                case GameMode.Custom:
+                    race = Race.CustomGame;
+                    playerOffset += playerOffset + gameTypeIndex + 1;
+                    break;
+                case GameMode.Ladder:
+                {
+                    var array = decompress.Skip(gameTypeIndex + 5).Take(4).ToArray();
+                    var dWord = array.DWord(0);
+                    switch (dWord)
+                    {
+                        case 0x01: race = Race.Human; break;
+                        case 0x02: race = Race.Orc; break;
+                        case 0x04: race = Race.NightElve; break;
+                        case 0x08: race = Race.Undead; break;
+                        case 0x20: race = Race.Random; break;
+                        case 0x40: race = Race.Fixed; break;
+                    }
+                    playerOffset += playerOffset + gameTypeIndex + 8;
+                    break;
+                }
+            }
+
+            yield return new Player(name, playerId, gameType, race);
+        }
+
+        public static byte[] DecompressZLibRaw(byte[] bCompressed)
+        {
+            byte[] bHdr = {0x1F, 0x8b, 0x08, 0, 0, 0, 0, 0};
+
+            using (var sOutput = new MemoryStream())
+            using (var sCompressed = new MemoryStream())
+            {
+                sCompressed.Write(bHdr, 0, bHdr.Length);
+                sCompressed.Write(bCompressed, 0, bCompressed.Length);
+                sCompressed.Position = 0;
+                using (var decomp = new GZipStream(sCompressed, CompressionMode.Decompress))
+                {
+                    decomp.CopyTo(sOutput);
+                }
+
+                return sOutput.ToArray();
+            }
+        }
     }
 
     public enum PlayerMode
     {
         MultiPlayer,
         SinglePlayer
+    }
+
+    public enum Race
+    {
+        CustomGame,
+        Human,
+        NightElve,
+        Orc,
+        Undead,
+        Random,
+        Fixed
+    }
+
+    public enum GameMode
+    {
+        Custom,
+        Ladder
     }
 
     public class GameVersion
@@ -106,8 +199,11 @@ namespace Adapters.w3gFiles
 
     public class Wc3Game
     {
-        public Wc3Game(ExpansionType expansionType, GameVersion version, PlayerMode playerMode, TimeSpan gameTime)
+        public Wc3Game(IEnumerable<Player> players, ExpansionType expansionType, GameVersion version,
+            PlayerMode playerMode,
+            TimeSpan gameTime)
         {
+            Players = players;
             ExpansionType = expansionType;
             Version = version;
             PlayerMode = playerMode;
@@ -118,12 +214,22 @@ namespace Adapters.w3gFiles
         public GameVersion Version { get; }
         public PlayerMode PlayerMode { get; }
         public TimeSpan GameTime { get; }
-
         public IEnumerable<Player> Players { get; }
     }
 
     public class Player
     {
-        public string Name { get; set; }
+        public Player(string name, uint playerId, GameMode gameType, Race race)
+        {
+            Name = name;
+            PlayerId = playerId;
+            GameType = gameType;
+            Race = race;
+        }
+
+        public uint PlayerId { get; }
+        public GameMode GameType { get; }
+        public Race Race { get; }
+        public string Name { get; }
     }
 }

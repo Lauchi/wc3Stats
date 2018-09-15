@@ -1,4 +1,6 @@
 using System;
+using System.Linq;
+using System.Threading.Tasks;
 using NUnit.Framework;
 
 namespace Adapters.w3gFiles.Tests
@@ -6,35 +8,46 @@ namespace Adapters.w3gFiles.Tests
     public class W3GFileReaderTests
     {
         [Test]
-        public void TestReadExpansionType()
+        public async Task TestReadExpansionType()
         {
             var w3GFileReader = new W3GFileReader(new W3GFileMapping());
-            var game = w3GFileReader.Read("TestGames/1_29.w3g");
+            var game = await w3GFileReader.Read("TestGames/1_29.w3g");
             Assert.AreEqual(ExpansionType.TheFrozenThrone, game.ExpansionType);
         }
 
         [Test]
-        public void TestReadVersion()
+        public async Task TestReadVersion()
         {
             var w3GFileReader = new W3GFileReader(new W3GFileMapping());
-            var game = w3GFileReader.Read("TestGames/1_29.w3g");
+            var game = await w3GFileReader.Read("TestGames/1_29.w3g");
             Assert.AreEqual("1.29.6060", game.Version.AsString);
         }
 
         [Test]
-        public void TestReadMultiplayerFlag()
+        public async Task TestReadMultiplayerFlag()
         {
             var w3GFileReader = new W3GFileReader(new W3GFileMapping());
-            var game = w3GFileReader.Read("TestGames/1_29.w3g");
+            var game = await w3GFileReader.Read("TestGames/1_29.w3g");
             Assert.AreEqual(PlayerMode.MultiPlayer, game.PlayerMode);
         }
 
         [Test]
-        public void TestReadTime()
+        public async Task TestReadTime()
         {
             var w3GFileReader = new W3GFileReader(new W3GFileMapping());
-            var game = w3GFileReader.Read("TestGames/1_29.w3g");
+            var game = await w3GFileReader.Read("TestGames/1_29.w3g");
             Assert.AreEqual(new TimeSpan(0, 0, 12, 14, 325), game.GameTime);
+        }
+
+        [Test]
+        public async Task TestReadPlayer()
+        {
+            var w3GFileReader = new W3GFileReader(new W3GFileMapping());
+            var game = await w3GFileReader.Read("TestGames/1_29.w3g");
+            Assert.AreEqual("modmoto", game.Players.ToList()[0].Name);
+            Assert.AreEqual(1, game.Players.ToList()[0].PlayerId);
+            Assert.AreEqual(GameMode.Ladder, game.Players.ToList()[0].GameType);
+            Assert.AreEqual(Race.NightElve, game.Players.ToList()[0].Race);
         }
     }
 }
