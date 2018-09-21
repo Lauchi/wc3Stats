@@ -70,11 +70,9 @@ namespace Adapters.w3gFiles
 
             var gameType = GameType(bytesDecompressed, name.Length + 7);
             var race = GetRace(gameType, bytesDecompressed, name.Length + 7);
-            //var map = GetTheMap(bytesDecompressed, name.Length + 7);
+            var map = GetTheMap(bytesDecompressed, name.Length + 7);
 
-
-
-            return new GameOwnerHeader(new GameOwner(name, playerId, race), gameType);
+            return new GameOwnerHeader(new GameOwner(name, playerId, race), gameType, map);
         }
 
         private Map GetTheMap(List<byte> bytesDecompressed, int index)
@@ -83,60 +81,39 @@ namespace Adapters.w3gFiles
             var enumerable = bytesDecompressed.Skip(findIndex + 3).ToArray();
             var gameName = enumerable.UntilNull();
             var enumerable2 = bytesDecompressed.Skip(findIndex + 5 + gameName.Length).ToArray();
-            var decomp = DecompWeirdThing(enumerable2);
+            var mapName = GetMapName(enumerable2.Take(200).Select(b => (char) b).ToArray());
 
-            return new Map(gameName);
+            return new Map(gameName, mapName);
         }
 
-        private string DecompWeirdThing(byte[] encodedString)
+        private string GetMapName(char[] encodedString)
         {
-            var untilNull = encodedString.UntilNull();
-            byte bitOrder = (byte) untilNull[0];
+            var decodedString = new List<char>();
+            var mask = encodedString[0];
+            int positionInStream = 0;
 
-            var chars = new List<string>();
-
-            var i = 6;
-            foreach (var c in untilNull.Skip(1).Take(7))
+            while (encodedString[positionInStream] != '\0')
             {
-                var charachterBYte = (byte) c;
-                var isSet = bitOrder.GetBit(i);
-                if (isSet)
-                {
-                    chars.Add(Encoding.UTF8.GetString(new [] { charachterBYte }));
-                }
+                if (positionInStream % 8 == 0) mask = encodedString[positionInStream];
                 else
                 {
-                    var i1 = (byte) (charachterBYte - 1);
-                    chars.Add(Encoding.UTF8.GetString(new [] { i1 }));
+                    if ((mask & (0x01 << (positionInStream % 8))) == 0)
+                    {
+                        var inner = encodedString[positionInStream];
+                        var decompressed = (char) (inner - 1);
+                        decodedString.Add(decompressed);
+                    }
+                    else
+                    {
+                        decodedString.Add(encodedString[positionInStream]);
+                    }
                 }
-
-                i--;
+                positionInStream++;
             }
 
-//            var charArray = untilNull.ToCharArray();
-//            var bytes1 = Encoding.UTF8.GetBytes(untilNull);
-//            var chars = new List<string>();
-//
-//            foreach (var b in bytes1)
-//            {
-//                var startsWithOne = b & 0x80;
-//                if (startsWithOne == 0x80)
-//                {
-//                    var item = Encoding.UTF8.GetString(new [] { b });
-//                    chars.Add(item);
-//                }
-//                else
-//                {
-//                    var b1 = Convert.ToByte(b);
-//                    var int32 = BitConverter.ToInt32(new [] { b1, Byte.MinValue, Byte.MinValue, Byte.MinValue }, 0);
-//                    var value = int32 - 1;
-//                    var bytes = BitConverter.GetBytes(value);
-//                    chars.Add(Encoding.UTF8.GetString(bytes));
-//                }
-//            }
-
-            var word = string.Join("", chars);
-            return word;
+            var decompWeirdThing2 = string.Join("", decodedString);
+            var mapName = string.Join("", decompWeirdThing2.Split('\0')[6].Skip(4));
+            return mapName;
         }
 
         private static GameMode GameType(List<byte> bytesDecompressed, int gameTypeIndex)
@@ -220,10 +197,13 @@ namespace Adapters.w3gFiles
     public class Map
     {
         public string GameName { get; }
+        public string MapName => MapPath.Split("/").Last().Split(".").First();
+        public string MapPath { get; }
 
-        public Map(string gameName)
+        public Map(string gameName, string mapName)
         {
             GameName = gameName;
+            MapPath = mapName;
         }
     }
 
@@ -231,11 +211,13 @@ namespace Adapters.w3gFiles
     {
         public GameOwner GameOwner { get; }
         public GameMode GameType { get; }
+        public Map Map { get; }
 
-        public GameOwnerHeader(GameOwner gameOwner, GameMode gameType)
+        public GameOwnerHeader(GameOwner gameOwner, GameMode gameType, Map map)
         {
             GameOwner = gameOwner;
             GameType = gameType;
+            Map = map;
         }
     }
 }

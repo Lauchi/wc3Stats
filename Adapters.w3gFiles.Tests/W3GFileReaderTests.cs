@@ -55,6 +55,8 @@ namespace Adapters.w3gFiles.Tests
             var w3GFileReader = new W3GFileReader(new W3GFileMapping());
             var game = await w3GFileReader.Read("TestGames/1_29.w3g");
             Assert.AreEqual("BNet", game.Map.GameName);
+            Assert.AreEqual("Maps/FrozenThrone/(4)TwistedMeadows.w3x", game.Map.MapPath);
+            Assert.AreEqual("(4)TwistedMeadows", game.Map.MapName);
         }
     }
 }

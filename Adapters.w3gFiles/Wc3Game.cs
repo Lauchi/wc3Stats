@@ -6,7 +6,7 @@ namespace Adapters.w3gFiles
     {
         public Wc3Game(GameOwner host, ExpansionType expansionType, GameVersion version,
             PlayerMode playerMode,
-            TimeSpan gameTime, GameMode gameType)
+            TimeSpan gameTime, GameMode gameType, Map map)
         {
             Host = host;
             ExpansionType = expansionType;
@@ -14,6 +14,7 @@ namespace Adapters.w3gFiles
             PlayerMode = playerMode;
             GameTime = gameTime;
             GameType = gameType;
+            Map = map;
         }
 
         public ExpansionType ExpansionType { get; }
