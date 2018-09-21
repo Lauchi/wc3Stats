@@ -57,7 +57,7 @@ namespace Adapters.w3gFiles
             return timeSpan;
         }
 
-        public GameOwner GetHost()
+        public GameOwnerHeader GetHost()
         {
             var contentSize = _fileBytesContent.Word(0x0000);
             var zippedContent = _fileBytesContent.Skip(0x0008).Take(contentSize).ToArray();
@@ -116,7 +116,7 @@ namespace Adapters.w3gFiles
                 }
             }
 
-            return new GameOwner(name, playerId, gameType, race);
+            return new GameOwnerHeader(new GameOwner(name, playerId, race), gameType);
         }
 
         public static byte[] DecompressZLibRaw(byte[] bCompressed)
@@ -136,6 +136,18 @@ namespace Adapters.w3gFiles
 
                 return sOutput.ToArray();
             }
+        }
+    }
+
+    public class GameOwnerHeader
+    {
+        public GameOwner GameOwner { get; }
+        public GameMode GameType { get; }
+
+        public GameOwnerHeader(GameOwner gameOwner, GameMode gameType)
+        {
+            GameOwner = gameOwner;
+            GameType = gameType;
         }
     }
 }

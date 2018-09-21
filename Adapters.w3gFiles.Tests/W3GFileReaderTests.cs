@@ -45,7 +45,7 @@ namespace Adapters.w3gFiles.Tests
             var game = await w3GFileReader.Read("TestGames/1_29.w3g");
             Assert.AreEqual("modmoto", game.Host.Name);
             Assert.AreEqual(1, game.Host.PlayerId);
-            Assert.AreEqual(GameMode.Ladder, game.Host.GameType);
+            Assert.AreEqual(GameMode.Ladder, game.GameType);
             Assert.AreEqual(Race.NightElve, game.Host.Race);
         }
     }
