@@ -48,5 +48,13 @@ namespace Adapters.w3gFiles.Tests
             Assert.AreEqual(GameMode.Ladder, game.GameType);
             Assert.AreEqual(Race.NightElve, game.Host.Race);
         }
+
+        [Test]
+        public async Task TestMapReadPlayer()
+        {
+            var w3GFileReader = new W3GFileReader(new W3GFileMapping());
+            var game = await w3GFileReader.Read("TestGames/1_29.w3g");
+            Assert.AreEqual("BNet", game.Map.GameName);
+        }
     }
 }

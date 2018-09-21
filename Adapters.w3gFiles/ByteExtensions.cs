@@ -22,5 +22,11 @@ namespace Adapters.w3gFiles
             var array = data.TakeWhile(b => b != 0).ToArray();
             return Encoding.UTF8.GetString(array);
         }
+
+        public static bool GetBit(this byte b, int bitNumber)
+        {
+            var bit = (b & (1 << bitNumber)) != 0;
+            return bit;
+        }
     }
 }

@@ -3,6 +3,7 @@
     public enum GameMode
     {
         Custom,
-        Ladder
+        Ladder,
+        Undefined
     }
 }

@@ -21,7 +21,8 @@ namespace Adapters.w3gFiles
             var version = _mapping.GetVersion();
             var isMultiPlayer = _mapping.GetIsMultiPlayer();
             var time = _mapping.GetPlayedTime();
-            var host = _mapping.GetHost();
+
+            var host = _mapping.GetGameMetaData();
 
             return new Wc3Game(host.GameOwner, expansionType, version, isMultiPlayer, time, host.GameType);
         }

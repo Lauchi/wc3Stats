@@ -8,6 +8,7 @@
         Orc,
         Undead,
         Random,
-        Fixed
+        Fixed,
+        Undefined
     }
 }

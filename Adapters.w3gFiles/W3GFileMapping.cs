@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
@@ -57,19 +58,92 @@ namespace Adapters.w3gFiles
             return timeSpan;
         }
 
-        public GameOwnerHeader GetHost()
+        public GameOwnerHeader GetGameMetaData()
         {
             var contentSize = _fileBytesContent.Word(0x0000);
             var zippedContent = _fileBytesContent.Skip(0x0008).Take(contentSize).ToArray();
-            var decompress = DecompressZLibRaw(zippedContent).ToList();
+            var bytesDecompressed = DecompressZLibRaw(zippedContent).ToList();
 
-            var playerId = BitConverter.ToUInt32(new byte[] {decompress[5], 0, 0, 0}, 0);
-            var playerData = decompress.Skip(6).ToArray();
+            var playerId = BitConverter.ToUInt32(new byte[] {bytesDecompressed[5], 0, 0, 0}, 0);
+            var playerData = bytesDecompressed.Skip(6).ToArray();
             var name = playerData.UntilNull();
-            var gameTypeIndex = name.Length + 7;
-            var b = decompress[gameTypeIndex];
-            GameMode gameType;
-            switch (b)
+
+            var gameType = GameType(bytesDecompressed, name.Length + 7);
+            var race = GetRace(gameType, bytesDecompressed, name.Length + 7);
+            //var map = GetTheMap(bytesDecompressed, name.Length + 7);
+
+
+
+            return new GameOwnerHeader(new GameOwner(name, playerId, race), gameType);
+        }
+
+        private Map GetTheMap(List<byte> bytesDecompressed, int index)
+        {
+            var findIndex = bytesDecompressed.FindIndex(index, b => b == 0x00);
+            var enumerable = bytesDecompressed.Skip(findIndex + 3).ToArray();
+            var gameName = enumerable.UntilNull();
+            var enumerable2 = bytesDecompressed.Skip(findIndex + 5 + gameName.Length).ToArray();
+            var decomp = DecompWeirdThing(enumerable2);
+
+            return new Map(gameName);
+        }
+
+        private string DecompWeirdThing(byte[] encodedString)
+        {
+            var untilNull = encodedString.UntilNull();
+            byte bitOrder = (byte) untilNull[0];
+
+            var chars = new List<string>();
+
+            var i = 6;
+            foreach (var c in untilNull.Skip(1).Take(7))
+            {
+                var charachterBYte = (byte) c;
+                var isSet = bitOrder.GetBit(i);
+                if (isSet)
+                {
+                    chars.Add(Encoding.UTF8.GetString(new [] { charachterBYte }));
+                }
+                else
+                {
+                    var i1 = (byte) (charachterBYte - 1);
+                    chars.Add(Encoding.UTF8.GetString(new [] { i1 }));
+                }
+
+                i--;
+            }
+
+//            var charArray = untilNull.ToCharArray();
+//            var bytes1 = Encoding.UTF8.GetBytes(untilNull);
+//            var chars = new List<string>();
+//
+//            foreach (var b in bytes1)
+//            {
+//                var startsWithOne = b & 0x80;
+//                if (startsWithOne == 0x80)
+//                {
+//                    var item = Encoding.UTF8.GetString(new [] { b });
+//                    chars.Add(item);
+//                }
+//                else
+//                {
+//                    var b1 = Convert.ToByte(b);
+//                    var int32 = BitConverter.ToInt32(new [] { b1, Byte.MinValue, Byte.MinValue, Byte.MinValue }, 0);
+//                    var value = int32 - 1;
+//                    var bytes = BitConverter.GetBytes(value);
+//                    chars.Add(Encoding.UTF8.GetString(bytes));
+//                }
+//            }
+
+            var word = string.Join("", chars);
+            return word;
+        }
+
+        private static GameMode GameType(List<byte> bytesDecompressed, int gameTypeIndex)
+        {
+            var gameTypeByte = bytesDecompressed[gameTypeIndex];
+            GameMode gameType = GameMode.Undefined;
+            switch (gameTypeByte)
             {
                 case 0x01:
                     gameType = GameMode.Custom;
@@ -77,10 +151,14 @@ namespace Adapters.w3gFiles
                 case 0x08:
                     gameType = GameMode.Ladder;
                     break;
-                default: throw new ArgumentException("Not clear if leader or custom game");
             }
 
-            var race = Race.CustomGame;
+            return gameType;
+        }
+
+        private static Race GetRace(GameMode gameType, List<byte> bytesDecompressed, int gameTypeIndex)
+        {
+            var race = Race.Undefined;
             switch (gameType)
             {
                 case GameMode.Custom:
@@ -88,7 +166,7 @@ namespace Adapters.w3gFiles
                     break;
                 case GameMode.Ladder:
                 {
-                    var array = decompress.Skip(gameTypeIndex + 5).Take(4).ToArray();
+                    var array = bytesDecompressed.Skip(gameTypeIndex + 5).Take(4).ToArray();
                     var dWord = array.DWord(0);
                     switch (dWord)
                     {
@@ -116,7 +194,7 @@ namespace Adapters.w3gFiles
                 }
             }
 
-            return new GameOwnerHeader(new GameOwner(name, playerId, race), gameType);
+            return race;
         }
 
         public static byte[] DecompressZLibRaw(byte[] bCompressed)
@@ -136,6 +214,16 @@ namespace Adapters.w3gFiles
 
                 return sOutput.ToArray();
             }
+        }
+    }
+
+    public class Map
+    {
+        public string GameName { get; }
+
+        public Map(string gameName)
+        {
+            GameName = gameName;
         }
     }
 

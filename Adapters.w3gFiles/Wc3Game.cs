@@ -22,5 +22,6 @@ namespace Adapters.w3gFiles
         public PlayerMode PlayerMode { get; }
         public TimeSpan GameTime { get; }
         public GameOwner Host { get; }
+        public Map Map { get; }
     }
 }
