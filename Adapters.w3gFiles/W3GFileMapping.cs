@@ -69,7 +69,7 @@ namespace Adapters.w3gFiles
 
             return new GameOwnerHeader(
                 new GameOwner(playerRecord.Name, playerRecord.PlayerId, playerRecord.Race, playerRecord.GameType, playerRecord.IsAdditionalPlayer),
-                playerRecord.GameType, map.Map, map.Players);
+                playerRecord.GameType, map.Map, map.Players, map.Winners);
         }
 
         private MapAndPlayers GetTheMap(List<byte> bytesDecompressed, int index)
@@ -85,9 +85,26 @@ namespace Adapters.w3gFiles
             var playerCount = GetPlayerCount(bytesDecompressed.Skip(startOfPlayerCount).ToList());
             var startOfPlayerList = startOfPlayerCount + 12;
 
-            var players = GetPlayers(bytesDecompressed.Skip(startOfPlayerList).ToList(), playerCount);
+            var players = GetPlayers(bytesDecompressed.Skip(startOfPlayerList).ToList(), playerCount).ToList();
 
-            return new MapAndPlayers(new Map(gameName, mapName), players);
+            var playerListSize = 0;
+            foreach (var player in players)
+            {
+                var playerLength = player.GameType == GameMode.Ladder ? 11 : 4;
+                playerListSize += playerLength + player.Name.Length + 4;
+            }
+
+            var startOfGameStartSegment = startOfPlayerList + playerListSize;
+            var gameStartSegment = bytesDecompressed.Skip(startOfGameStartSegment + 1).ToList();
+            var winnerIds = GetWinnerIds(gameStartSegment);
+            var winners = players.Where(player => winnerIds.Contains(player.PlayerId));
+
+            return new MapAndPlayers(new Map(gameName, mapName), players, winners);
+        }
+
+        private IEnumerable<uint> GetWinnerIds(List<byte> gameStartSegment)
+        {
+            return new List<uint>();
         }
 
         private IEnumerable<Player> GetPlayers(List<byte> bytesDecompressed, uint playerCount)
@@ -240,13 +257,15 @@ namespace Adapters.w3gFiles
 
     internal class MapAndPlayers
     {
-        public MapAndPlayers(Map map, IEnumerable<Player> players)
+        public MapAndPlayers(Map map, IEnumerable<Player> players, IEnumerable<Player> winners)
         {
             Map = map;
             Players = players;
+            Winners = winners;
         }
 
         public Map Map { get; }
         public IEnumerable<Player> Players { get; }
+        public IEnumerable<Player> Winners { get; }
     }
 }

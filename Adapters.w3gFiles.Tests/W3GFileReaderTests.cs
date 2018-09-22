@@ -66,11 +66,21 @@ namespace Adapters.w3gFiles.Tests
             var w3GFileReader = new W3GFileReader(new W3GFileMapping());
             var game = await w3GFileReader.Read("TestGames/1_29.w3g");
             Assert.AreEqual("modmoto", game.Players.ToList()[0].Name);
+            Assert.AreEqual(1, game.Players.ToList()[0].PlayerId);
             Assert.AreEqual("Jason.Z", game.Players.ToList()[1].Name);
+            Assert.AreEqual(2, game.Players.ToList()[1].PlayerId);
             Assert.AreEqual(Race.NightElve, game.Players.ToList()[0].Race);
             Assert.AreEqual(Race.Orc, game.Players.ToList()[1].Race);
             Assert.True(game.Players.ToList()[0].IsReplayOwner);
             Assert.True(game.Players.ToList()[1].IsAdditionalPlayer);
+        }
+
+        [Test]
+        public async Task TestGetWinner()
+        {
+            var w3GFileReader = new W3GFileReader(new W3GFileMapping());
+            var game = await w3GFileReader.Read("TestGames/1_29.w3g");
+            Assert.AreEqual("modmoto", game.Winners.ToList()[0].Name);
         }
     }
 }
