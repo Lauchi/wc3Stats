@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System.Collections.Generic;
+using System.IO;
 using System.Threading.Tasks;
 
 namespace Adapters.w3gFiles
@@ -24,7 +25,9 @@ namespace Adapters.w3gFiles
 
             var host = _mapping.GetGameMetaData();
 
-            return new Wc3Game(host.GameOwner, expansionType, version, isMultiPlayer, time, host.GameType, host.Map);
+            var allPlayers = new List<Player> { host.GameOwner };
+            allPlayers.AddRange(host.Players);
+            return new Wc3Game(host.GameOwner, expansionType, version, isMultiPlayer, time, host.GameType, host.Map, allPlayers);
         }
     }
 }

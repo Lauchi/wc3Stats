@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace Adapters.w3gFiles
 {
@@ -6,7 +7,7 @@ namespace Adapters.w3gFiles
     {
         public Wc3Game(GameOwner host, ExpansionType expansionType, GameVersion version,
             PlayerMode playerMode,
-            TimeSpan gameTime, GameMode gameType, Map map)
+            TimeSpan gameTime, GameMode gameType, Map map, IEnumerable<Player> players)
         {
             Host = host;
             ExpansionType = expansionType;
@@ -15,6 +16,7 @@ namespace Adapters.w3gFiles
             GameTime = gameTime;
             GameType = gameType;
             Map = map;
+            Players = players;
         }
 
         public ExpansionType ExpansionType { get; }
@@ -24,5 +26,6 @@ namespace Adapters.w3gFiles
         public TimeSpan GameTime { get; }
         public GameOwner Host { get; }
         public Map Map { get; }
+        public IEnumerable<Player> Players { get; }
     }
 }

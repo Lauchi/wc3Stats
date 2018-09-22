@@ -64,33 +64,68 @@ namespace Adapters.w3gFiles
             var zippedContent = _fileBytesContent.Skip(0x0008).Take(contentSize).ToArray();
             var bytesDecompressed = DecompressZLibRaw(zippedContent).ToList();
 
-            var playerId = BitConverter.ToUInt32(new byte[] {bytesDecompressed[5], 0, 0, 0}, 0);
-            var playerData = bytesDecompressed.Skip(6).ToArray();
-            var name = playerData.UntilNull();
+            var playerRecord = GetPlayerRecord(bytesDecompressed);
+            var map = GetTheMap(bytesDecompressed, playerRecord.Name.Length + 7);
 
-            var gameType = GameType(bytesDecompressed, name.Length + 7);
-            var race = GetRace(gameType, bytesDecompressed, name.Length + 7);
-            var map = GetTheMap(bytesDecompressed, name.Length + 7);
-
-            return new GameOwnerHeader(new GameOwner(name, playerId, race), gameType, map);
+            return new GameOwnerHeader(
+                new GameOwner(playerRecord.Name, playerRecord.PlayerId, playerRecord.Race, playerRecord.GameType),
+                playerRecord.GameType, map.Map, map.Players);
         }
 
-        private Map GetTheMap(List<byte> bytesDecompressed, int index)
+        private MapAndPlayers GetTheMap(List<byte> bytesDecompressed, int index)
         {
             var findIndex = bytesDecompressed.FindIndex(index, b => b == 0x00);
             var enumerable = bytesDecompressed.Skip(findIndex + 3).ToArray();
             var gameName = enumerable.UntilNull();
             var compressedMapHeader = bytesDecompressed.Skip(findIndex + 5 + gameName.Length).ToArray();
-            var mapName = GetMapName(compressedMapHeader.TakeWhile(b => b != '\0').ToArray());
+            var encodedString = compressedMapHeader.TakeWhile(b => b != '\0').ToArray();
+            var encodedStringLength = encodedString.Length;
+            var mapName = GetMapName(encodedString);
+            var startOfPlayerCount = encodedStringLength + 6 + findIndex + gameName.Length;
+            var playerCount = GetPlayerCount(bytesDecompressed.Skip(startOfPlayerCount).ToList());
+            var startOfPlayerList = startOfPlayerCount + 12;
 
-            return new Map(gameName, mapName);
+            var s = string.Join("", bytesDecompressed.Select(b => (char)b));
+            var players = GetPlayers(bytesDecompressed.Take(startOfPlayerList).ToList(), playerCount);
+
+            return new MapAndPlayers(new Map(gameName, mapName), players);
+        }
+
+        private IEnumerable<Player> GetPlayers(List<byte> bytesDecompressed, uint playerCount)
+        {
+            var offset = 0;
+            for (var i = 0; i < playerCount; i++)
+            {
+                var player = GetPlayerRecord(bytesDecompressed);
+                var playerLength = player.GameType == GameMode.Ladder ? 11 : 4;
+                offset += playerLength + player.Name.Length + 4;
+                bytesDecompressed = bytesDecompressed.Skip(offset).ToList();
+                yield return player;
+            }
+        }
+
+        private Player GetPlayerRecord(List<byte> bytesDecompressed)
+        {
+            var playerId = BitConverter.ToUInt32(new byte[] {bytesDecompressed[5], 0, 0, 0}, 0);
+            var playerData = bytesDecompressed.Skip(6).ToArray();
+            var name = playerData.UntilNull();
+            var gameType = GameType(bytesDecompressed, name.Length + 7);
+
+            var race = GetRace(gameType, bytesDecompressed, name.Length + 7);
+            return new Player(name, playerId, race, gameType);
+        }
+
+        private uint GetPlayerCount(List<byte> bytesDecompressed)
+        {
+            var uInt32 = BitConverter.ToUInt32(new byte[] { bytesDecompressed[0], 0, 0, 0}, 0);
+            return uInt32;
         }
 
         private string GetMapName(byte[] encodedString)
         {
             var decodedString = new List<char>();
             var mask = encodedString[0];
-            int positionInStream = 0;
+            var positionInStream = 0;
 
             foreach (var encodedCharacter in encodedString)
             {
@@ -103,7 +138,7 @@ namespace Adapters.w3gFiles
                     if (mask.BitIsSet(positionInStream % 8))
                     {
                         var inner = encodedCharacter;
-                        var decompressed = (inner - 1);
+                        var decompressed = inner - 1;
                         decodedString.Add((char) decompressed);
                     }
                     else
@@ -111,6 +146,7 @@ namespace Adapters.w3gFiles
                         decodedString.Add((char) encodedCharacter);
                     }
                 }
+
                 positionInStream++;
             }
 
@@ -127,7 +163,7 @@ namespace Adapters.w3gFiles
         private static GameMode GameType(List<byte> bytesDecompressed, int gameTypeIndex)
         {
             var gameTypeByte = bytesDecompressed[gameTypeIndex];
-            GameMode gameType = GameMode.Undefined;
+            var gameType = GameMode.Undefined;
             switch (gameTypeByte)
             {
                 case 0x01:
@@ -202,30 +238,15 @@ namespace Adapters.w3gFiles
         }
     }
 
-    public class Map
+    internal class MapAndPlayers
     {
-        public string GameName { get; }
-        public string MapName => MapPath.Split("/").Last().Split(".").First();
-        public string MapPath { get; }
-
-        public Map(string gameName, string mapName)
+        public MapAndPlayers(Map map, IEnumerable<Player> players)
         {
-            GameName = gameName;
-            MapPath = mapName;
-        }
-    }
-
-    public class GameOwnerHeader
-    {
-        public GameOwner GameOwner { get; }
-        public GameMode GameType { get; }
-        public Map Map { get; }
-
-        public GameOwnerHeader(GameOwner gameOwner, GameMode gameType, Map map)
-        {
-            GameOwner = gameOwner;
-            GameType = gameType;
             Map = map;
+            Players = players;
         }
+
+        public Map Map { get; }
+        public IEnumerable<Player> Players { get; }
     }
 }
