@@ -69,6 +69,8 @@ namespace Adapters.w3gFiles.Tests
             Assert.AreEqual("Jason.Z", game.Players.ToList()[1].Name);
             Assert.AreEqual(Race.NightElve, game.Players.ToList()[0].Race);
             Assert.AreEqual(Race.Orc, game.Players.ToList()[1].Race);
+            Assert.True(game.Players.ToList()[0].IsReplayOwner);
+            Assert.True(game.Players.ToList()[1].IsAdditionalPlayer);
         }
     }
 }
