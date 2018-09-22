@@ -7,7 +7,7 @@ namespace Adapters.w3gFiles
     {
         public Wc3Game(GameOwner host, ExpansionType expansionType, GameVersion version,
             PlayerMode playerMode,
-            TimeSpan gameTime, GameMode gameType, Map map, IEnumerable<Player> players, IEnumerable<Player> winners)
+            TimeSpan gameTime, GameMode gameType, Map map, IEnumerable<Player> players, IEnumerable<GameSlot> gameSlots)
         {
             Host = host;
             ExpansionType = expansionType;
@@ -17,7 +17,7 @@ namespace Adapters.w3gFiles
             GameType = gameType;
             Map = map;
             Players = players;
-            Winners = winners;
+            GameSlots = gameSlots;
         }
 
         public ExpansionType ExpansionType { get; }
@@ -28,6 +28,6 @@ namespace Adapters.w3gFiles
         public GameOwner Host { get; }
         public Map Map { get; }
         public IEnumerable<Player> Players { get; }
-        public IEnumerable<Player> Winners { get; }
+        public IEnumerable<GameSlot> GameSlots { get; }
     }
 }

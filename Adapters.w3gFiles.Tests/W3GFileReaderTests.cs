@@ -80,7 +80,14 @@ namespace Adapters.w3gFiles.Tests
         {
             var w3GFileReader = new W3GFileReader(new W3GFileMapping());
             var game = await w3GFileReader.Read("TestGames/1_29.w3g");
-            Assert.AreEqual("modmoto", game.Winners.ToList()[0].Name);
+            Assert.AreEqual(1, game.GameSlots.ToList()[0].PlayerId);
+            Assert.AreEqual(Race.NightElve, game.GameSlots.ToList()[0].Race);
+            Assert.AreEqual(SlotUsage.Used, game.GameSlots.ToList()[0].SlotUsage);
+            Assert.AreEqual(2, game.GameSlots.ToList()[1].PlayerId);
+            Assert.AreEqual(Race.Orc, game.GameSlots.ToList()[1].Race);
+            Assert.AreEqual(SlotUsage.Used, game.GameSlots.ToList()[1].SlotUsage);
+            Assert.AreEqual(SlotUsage.Empty, game.GameSlots.ToList()[2].SlotUsage);
+            Assert.AreEqual(SlotUsage.Empty, game.GameSlots.ToList()[3].SlotUsage);
         }
     }
 }

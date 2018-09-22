@@ -8,15 +8,15 @@ namespace Adapters.w3gFiles
         public GameMode GameType { get; }
         public Map Map { get; }
         public IEnumerable<Player> Players { get; }
-        public IEnumerable<Player> Winners { get; }
+        public IEnumerable<GameSlot> GameSlots { get; }
 
-        public GameOwnerHeader(GameOwner gameOwner, GameMode gameType, Map map, IEnumerable<Player> players, IEnumerable<Player> winners)
+        public GameOwnerHeader(GameOwner gameOwner, GameMode gameType, Map map, IEnumerable<Player> players, IEnumerable<GameSlot> gameSlots)
         {
             GameOwner = gameOwner;
             GameType = gameType;
             Map = map;
             Players = players;
-            Winners = winners;
+            GameSlots = gameSlots;
         }
     }
 }

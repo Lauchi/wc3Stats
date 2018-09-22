@@ -69,7 +69,7 @@ namespace Adapters.w3gFiles
 
             return new GameOwnerHeader(
                 new GameOwner(playerRecord.Name, playerRecord.PlayerId, playerRecord.Race, playerRecord.GameType, playerRecord.IsAdditionalPlayer),
-                playerRecord.GameType, map.Map, map.Players, map.Winners);
+                playerRecord.GameType, map.Map, map.Players, map.GameSlots);
         }
 
         private MapAndPlayers GetTheMap(List<byte> bytesDecompressed, int index)
@@ -96,15 +96,56 @@ namespace Adapters.w3gFiles
 
             var startOfGameStartSegment = startOfPlayerList + playerListSize;
             var gameStartSegment = bytesDecompressed.Skip(startOfGameStartSegment + 1).ToList();
-            var winnerIds = GetWinnerIds(gameStartSegment);
-            var winners = players.Where(player => winnerIds.Contains(player.PlayerId));
+            var gameSlots = GetGameSlots(gameStartSegment);
 
-            return new MapAndPlayers(new Map(gameName, mapName), players, winners);
+            return new MapAndPlayers(new Map(gameName, mapName), players, gameSlots);
         }
 
-        private IEnumerable<uint> GetWinnerIds(List<byte> gameStartSegment)
+        private List<GameSlot> GetGameSlots(List<byte> gameStartSegment)
         {
-            return new List<uint>();
+            var numberOfPlayerRecords = (int) gameStartSegment[3];
+            var startOfRecords = gameStartSegment.Skip(4).ToArray();
+
+            var records = ParseGameSlots(numberOfPlayerRecords, startOfRecords).ToList();
+            return records;
+        }
+
+        private IEnumerable<GameSlot> ParseGameSlots(int numberOfPlayerRecords, byte[] startOfRecords)
+        {
+            for (int i = 0; i < numberOfPlayerRecords; i++)
+            {
+                var playerId = (int) startOfRecords[i * 9 + 0];
+                var slotUsage = ToSlotUsage(startOfRecords[i * 9 + 2]);
+                var isHuman = startOfRecords[i * 9 + 3] == 0x00;
+                var teamNumber = (int) startOfRecords[i * 9 + 4];
+                var race = ToRace(startOfRecords[i * 9 + 6]);
+                yield return new GameSlot(playerId, slotUsage, isHuman, teamNumber, race);
+            }
+        }
+
+        private Race ToRace(byte startOfRecord)
+        {
+            switch (startOfRecord)
+            {
+                case 0X01 : return Race.Human;
+                case 0X02 : return Race.Orc;
+                case 0X04 : return Race.NightElve;
+                case 0X08 : return Race.Undead;
+                case 0X20 : return Race.Random;
+                case 0X40 : return Race.Fixed;
+                default : return Race.Unknown;
+            }
+        }
+
+        private SlotUsage ToSlotUsage(byte startOfRecord)
+        {
+            switch (startOfRecord)
+            {
+                case 0X00 : return SlotUsage.Empty;
+                case 0X01 : return SlotUsage.Closed;
+                case 0X02 : return SlotUsage.Used;
+                default : return SlotUsage.Unknown;
+            }
         }
 
         private IEnumerable<Player> GetPlayers(List<byte> bytesDecompressed, uint playerCount)
@@ -253,19 +294,5 @@ namespace Adapters.w3gFiles
                 return sOutput.ToArray();
             }
         }
-    }
-
-    internal class MapAndPlayers
-    {
-        public MapAndPlayers(Map map, IEnumerable<Player> players, IEnumerable<Player> winners)
-        {
-            Map = map;
-            Players = players;
-            Winners = winners;
-        }
-
-        public Map Map { get; }
-        public IEnumerable<Player> Players { get; }
-        public IEnumerable<Player> Winners { get; }
     }
 }

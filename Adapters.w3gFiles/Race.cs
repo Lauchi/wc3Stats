@@ -9,6 +9,7 @@
         Undead,
         Random,
         Fixed,
-        Undefined
+        Undefined,
+        Unknown
     }
 }
