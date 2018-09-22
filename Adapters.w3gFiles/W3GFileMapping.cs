@@ -80,40 +80,48 @@ namespace Adapters.w3gFiles
             var findIndex = bytesDecompressed.FindIndex(index, b => b == 0x00);
             var enumerable = bytesDecompressed.Skip(findIndex + 3).ToArray();
             var gameName = enumerable.UntilNull();
-            var enumerable2 = bytesDecompressed.Skip(findIndex + 5 + gameName.Length).ToArray();
-            var mapName = GetMapName(enumerable2.Take(200).Select(b => (char) b).ToArray());
+            var compressedMapHeader = bytesDecompressed.Skip(findIndex + 5 + gameName.Length).ToArray();
+            var mapName = GetMapName(compressedMapHeader.TakeWhile(b => b != '\0').ToArray());
 
             return new Map(gameName, mapName);
         }
 
-        private string GetMapName(char[] encodedString)
+        private string GetMapName(byte[] encodedString)
         {
             var decodedString = new List<char>();
             var mask = encodedString[0];
             int positionInStream = 0;
 
-            while (encodedString[positionInStream] != '\0')
+            foreach (var encodedCharacter in encodedString)
             {
-                if (positionInStream % 8 == 0) mask = encodedString[positionInStream];
+                if (IsChecksumByte(positionInStream))
+                {
+                    mask = encodedCharacter;
+                }
                 else
                 {
-                    if ((mask & (0x01 << (positionInStream % 8))) == 0)
+                    if (mask.BitIsSet(positionInStream % 8))
                     {
-                        var inner = encodedString[positionInStream];
-                        var decompressed = (char) (inner - 1);
-                        decodedString.Add(decompressed);
+                        var inner = encodedCharacter;
+                        var decompressed = (inner - 1);
+                        decodedString.Add((char) decompressed);
                     }
                     else
                     {
-                        decodedString.Add(encodedString[positionInStream]);
+                        decodedString.Add((char) encodedCharacter);
                     }
                 }
                 positionInStream++;
             }
 
-            var decompWeirdThing2 = string.Join("", decodedString);
-            var mapName = string.Join("", decompWeirdThing2.Split('\0')[6].Skip(4));
+            var decompressedJoinesName = string.Join("", decodedString);
+            var mapName = string.Join("", decompressedJoinesName.Split('\0')[6].Skip(4));
             return mapName;
+        }
+
+        private static bool IsChecksumByte(int positionInStream)
+        {
+            return positionInStream % 8 == 0;
         }
 
         private static GameMode GameType(List<byte> bytesDecompressed, int gameTypeIndex)

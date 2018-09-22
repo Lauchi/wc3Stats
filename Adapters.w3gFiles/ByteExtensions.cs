@@ -23,10 +23,9 @@ namespace Adapters.w3gFiles
             return Encoding.UTF8.GetString(array);
         }
 
-        public static bool GetBit(this byte b, int bitNumber)
+        public static bool BitIsSet(this byte mask, int position)
         {
-            var bit = (b & (1 << bitNumber)) != 0;
-            return bit;
+            return (mask & (0x01 << position)) == 0;
         }
     }
 }
