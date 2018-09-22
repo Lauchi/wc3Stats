@@ -85,8 +85,7 @@ namespace Adapters.w3gFiles
             var playerCount = GetPlayerCount(bytesDecompressed.Skip(startOfPlayerCount).ToList());
             var startOfPlayerList = startOfPlayerCount + 12;
 
-            var s = string.Join("", bytesDecompressed.Select(b => (char)b));
-            var players = GetPlayers(bytesDecompressed.Take(startOfPlayerList).ToList(), playerCount);
+            var players = GetPlayers(bytesDecompressed.Skip(startOfPlayerList).ToList(), playerCount);
 
             return new MapAndPlayers(new Map(gameName, mapName), players);
         }
@@ -94,7 +93,7 @@ namespace Adapters.w3gFiles
         private IEnumerable<Player> GetPlayers(List<byte> bytesDecompressed, uint playerCount)
         {
             var offset = 0;
-            for (var i = 0; i < playerCount; i++)
+            for (var i = 0; i < playerCount - 1; i++)
             {
                 var player = GetPlayerRecord(bytesDecompressed);
                 var playerLength = player.GameType == GameMode.Ladder ? 11 : 4;

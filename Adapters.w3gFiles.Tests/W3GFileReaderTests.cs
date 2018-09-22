@@ -61,12 +61,12 @@ namespace Adapters.w3gFiles.Tests
         }
 
         [Test]
-        public async Task     TestGetPlayers()
+        public async Task TestGetPlayers()
         {
             var w3GFileReader = new W3GFileReader(new W3GFileMapping());
             var game = await w3GFileReader.Read("TestGames/1_29.w3g");
             Assert.AreEqual("modmoto", game.Players.ToList()[0].Name);
-            Assert.AreEqual("irgendwer", game.Players.ToList()[1].Name);
+            Assert.AreEqual("Jason.Z", game.Players.ToList()[1].Name);
             Assert.AreEqual(Race.NightElve, game.Players.ToList()[0].Race);
             Assert.AreEqual(Race.Orc, game.Players.ToList()[1].Race);
         }
