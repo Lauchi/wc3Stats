@@ -64,11 +64,11 @@ namespace Adapters.w3gFiles
             var zippedContent = _fileBytesContent.Skip(0x0008).Take(contentSize).ToArray();
             var bytesDecompressed = DecompressZLibRaw(zippedContent).ToList();
 
-            var playerRecord = GetPlayerRecord(bytesDecompressed);
+            var playerRecord = GetPlayerRecord(bytesDecompressed.Skip(4).ToList());
             var map = GetTheMap(bytesDecompressed, playerRecord.Name.Length + 7);
 
             return new GameOwnerHeader(
-                new GameOwner(playerRecord.Name, playerRecord.PlayerId, playerRecord.Race, playerRecord.GameType),
+                new GameOwner(playerRecord.Name, playerRecord.PlayerId, playerRecord.Race, playerRecord.GameType, playerRecord.IsAdditionalPlayer),
                 playerRecord.GameType, map.Map, map.Players);
         }
 
@@ -106,13 +106,14 @@ namespace Adapters.w3gFiles
 
         private Player GetPlayerRecord(List<byte> bytesDecompressed)
         {
-            var playerId = BitConverter.ToUInt32(new byte[] {bytesDecompressed[5], 0, 0, 0}, 0);
-            var playerData = bytesDecompressed.Skip(6).ToArray();
+            var isAdditionalPlayer = bytesDecompressed[0] == 0x16;
+            var playerId = BitConverter.ToUInt32(new byte[] {bytesDecompressed[1], 0, 0, 0}, 0);
+            var playerData = bytesDecompressed.Skip(2).ToArray();
             var name = playerData.UntilNull();
-            var gameType = GameType(bytesDecompressed, name.Length + 7);
+            var gameType = GameType(bytesDecompressed, name.Length + 3);
 
-            var race = GetRace(gameType, bytesDecompressed, name.Length + 7);
-            return new Player(name, playerId, race, gameType);
+            var race = GetRace(gameType, bytesDecompressed, name.Length + 3);
+            return new Player(name, playerId, race, gameType, isAdditionalPlayer);
         }
 
         private uint GetPlayerCount(List<byte> bytesDecompressed)

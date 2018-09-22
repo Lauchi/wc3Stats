@@ -61,7 +61,7 @@ namespace Adapters.w3gFiles.Tests
         }
 
         [Test]
-        public async Task TestGetPlayers()
+        public async Task     TestGetPlayers()
         {
             var w3GFileReader = new W3GFileReader(new W3GFileMapping());
             var game = await w3GFileReader.Read("TestGames/1_29.w3g");
