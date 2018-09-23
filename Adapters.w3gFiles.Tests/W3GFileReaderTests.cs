@@ -95,19 +95,24 @@ namespace Adapters.w3gFiles.Tests
         {
             var w3GFileReader = new W3GFileReader(new W3GFileMapping());
             var game = await w3GFileReader.Read("TestGames/1_29.w3g");
-            Assert.AreEqual(1, game.ChatMessages.ToList()[0].PlayerId);
-            Assert.AreEqual(2, game.ChatMessages.ToList()[1].PlayerId);
-            Assert.AreEqual("gl hf", game.ChatMessages.ToList()[0].Message);
-            Assert.AreEqual("gl", game.ChatMessages.ToList()[1].Message);
+            var chatMessages = game.ChatMessages.ToList();
+            Assert.AreEqual(1, chatMessages[0].PlayerId);
+            Assert.AreEqual(2, chatMessages[1].PlayerId);
+            Assert.AreEqual("gl hf", chatMessages[0].Message);
+            Assert.AreEqual("gl", chatMessages[1].Message);
+            Assert.AreEqual("gg", chatMessages[2].Message);
+            Assert.AreEqual(1, chatMessages[2].PlayerId);
         }
 
         [Test]
-        public async Task TestGetPlayerLeftEvents()
+        public async Task TestGetWinners()
         {
             var w3GFileReader = new W3GFileReader(new W3GFileMapping());
             var game = await w3GFileReader.Read("TestGames/1_29.w3g");
-            Assert.AreEqual(1, game.Winners.ToList()[0].PlayerId);
-            Assert.AreEqual("modmoto", game.Winners.ToList()[0].Name);
+            var players = game.Winners.ToList();
+            Assert.AreEqual(2, players[0].PlayerId);
+            Assert.AreEqual("Jason.Z", players[0].Name);
+            Assert.AreEqual(1, players.Count);
         }
     }
 }

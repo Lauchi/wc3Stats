@@ -339,9 +339,9 @@ namespace Adapters.w3gFiles
                         var reason = _gameActionBytes[offset + 1];
                         var playerId = (int) _gameActionBytes[offset + 5];
                         var result = _gameActionBytes[offset + 6];
-
+                        var unknownWinFlag = _gameActionBytes.DWord(offset + 10);
                         offset += 14;
-                        yield return new PlayerLeft(playerId, reason, result);
+                        yield return new PlayerLeft(playerId, reason, result, unknownWinFlag);
                         break;
                     }
                     // all unecessary stuff below
@@ -365,20 +365,6 @@ namespace Adapters.w3gFiles
                             $"Could not parse Actiontype0x{BitConverter.ToString(new[] {_gameActionBytes[offset]})} on Location {offset}, will abort parsing Actions, actionlist is most likely not comprehensive");
                         yield break;
                 }
-        }
-    }
-
-    public class PlayerLeft : IGameAction
-    {
-        public int PlayerId { get; }
-        public uint Reason { get; }
-        public uint Result { get; }
-
-        public PlayerLeft(int playerId, uint reason, uint result)
-        {
-            PlayerId = playerId;
-            Reason = reason;
-            Result = result;
         }
     }
 

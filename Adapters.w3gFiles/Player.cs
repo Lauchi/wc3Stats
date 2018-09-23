@@ -17,6 +17,12 @@
         public bool IsAdditionalPlayer { get; }
         public bool IsReplayOwner => !IsAdditionalPlayer;
         public string Name { get; }
+        public int Team { get; private set; }
+
+        public void SetTeam(int teamId)
+        {
+            Team = teamId;
+        }
     }
 
     public class GameOwner : Player
