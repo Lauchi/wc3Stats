@@ -13,6 +13,7 @@ namespace Adapters.w3gFiles
         private byte[] _fileBytesContent;
         private byte[] _fileBytesHeader;
         private byte[] _fileBytesGameActions;
+        private byte[] _contentDecompressed;
 
         public ExpansionType GetExpansionType()
         {
@@ -50,6 +51,7 @@ namespace Adapters.w3gFiles
             _fileBytes = fileBytes;
             _fileBytesHeader = fileBytes.Skip(0x30).ToArray();
             _fileBytesContent = fileBytes.Skip(0x44).ToArray();
+            _contentDecompressed = Decompress(_fileBytesContent).ToArray();
         }
 
         public TimeSpan GetPlayedTime()
@@ -61,21 +63,32 @@ namespace Adapters.w3gFiles
 
         public GameOwnerHeader GetGameMetaData()
         {
-            var contentSize = _fileBytesContent.Word(0x0000);
-            var zippedContent = _fileBytesContent.Skip(0x0008).Take(contentSize).ToArray();
-            var bytesDecompressed = DecompressZLibRaw(zippedContent).ToList();
-
-            var playerRecord = GetPlayerRecord(bytesDecompressed.Skip(4).ToList());
-            var map = GetTheMap(bytesDecompressed, playerRecord.Name.Length + 7);
+            var playerRecord = GetPlayerRecord(_contentDecompressed.Skip(4).ToList());
+            var map = GetTheMap(_contentDecompressed, playerRecord.Name.Length + 7);
 
             return new GameOwnerHeader(
                 new GameOwner(playerRecord.Name, playerRecord.PlayerId, playerRecord.Race, playerRecord.GameType, playerRecord.IsAdditionalPlayer),
                 playerRecord.GameType, map.Map, map.Players, map.GameSlots);
         }
 
-        private MapAndPlayers GetTheMap(List<byte> bytesDecompressed, int index)
+        private IEnumerable<byte> Decompress(byte[] fileBytesContent)
         {
-            var findIndex = bytesDecompressed.FindIndex(index, b => b == 0x00);
+            var bytes = new List<byte>();
+            for (int i = 0; i < 10; i++)
+            {
+                var contentSize = fileBytesContent.Word(0x0000);
+                var zippedContent = fileBytesContent.Skip(8).Take(contentSize);
+                var decompressed = DecompressZLibRaw(zippedContent.ToArray());
+                bytes.AddRange(decompressed);
+                fileBytesContent = fileBytesContent.Skip(contentSize + 8).ToArray();
+            }
+
+            return bytes;
+        }
+
+        private MapAndPlayers GetTheMap(byte[] bytesDecompressed, int index)
+        {
+            var findIndex = bytesDecompressed.ToList().FindIndex(index, b => b == 0x00);
             var enumerable = bytesDecompressed.Skip(findIndex + 3).ToArray();
             var gameName = enumerable.UntilNull();
             var compressedMapHeader = bytesDecompressed.Skip(findIndex + 5 + gameName.Length).ToArray();
