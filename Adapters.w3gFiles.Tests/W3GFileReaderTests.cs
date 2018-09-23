@@ -100,5 +100,14 @@ namespace Adapters.w3gFiles.Tests
             Assert.AreEqual("gl hf", game.ChatMessages.ToList()[0].Message);
             Assert.AreEqual("gl", game.ChatMessages.ToList()[1].Message);
         }
+
+        [Test]
+        public async Task TestGetPlayerLeftEvents()
+        {
+            var w3GFileReader = new W3GFileReader(new W3GFileMapping());
+            var game = await w3GFileReader.Read("TestGames/1_29.w3g");
+            Assert.AreEqual(1, game.Winners.ToList()[0].PlayerId);
+            Assert.AreEqual("modmoto", game.Winners.ToList()[0].Name);
+        }
     }
 }

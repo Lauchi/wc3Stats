@@ -10,11 +10,13 @@ namespace Adapters.w3gFiles
 {
     public class W3GFileMapping
     {
+        private byte[] _contentDecompressed;
         private byte[] _fileBytes;
         private byte[] _fileBytesContent;
         private byte[] _fileBytesHeader;
         private byte[] _gameActionBytes;
-        private byte[] _contentDecompressed;
+
+        public ICollection<ChatMessage> Messages { get; } = new Collection<ChatMessage>();
 
         public ExpansionType GetExpansionType()
         {
@@ -92,18 +94,19 @@ namespace Adapters.w3gFiles
 
 
             var startOfActionIndex = startOfGameStartSegment + gameSlots.Count * 9 + 11;
-            _gameActionBytes = _contentDecompressed.Skip(startOfActionIndex+ 15).ToArray();
+            _gameActionBytes = _contentDecompressed.Skip(startOfActionIndex + 15).ToArray();
             var map = new MapAndPlayers(new Map(gameName, mapName), players, gameSlots);
 
             return new GameHeader(
-                new GameOwner(playerRecord.Name, playerRecord.PlayerId, playerRecord.Race, playerRecord.GameType, playerRecord.IsAdditionalPlayer),
+                new GameOwner(playerRecord.Name, playerRecord.PlayerId, playerRecord.Race, playerRecord.GameType,
+                    playerRecord.IsAdditionalPlayer),
                 playerRecord.GameType, map.Map, map.Players, map.GameSlots);
         }
 
         private IEnumerable<byte> Decompress(byte[] fileBytesContent)
         {
             var bytes = new List<byte>();
-            while(fileBytesContent.Length != 0)
+            while (fileBytesContent.Length != 0)
             {
                 var contentSize = fileBytesContent.Word(0x00);
                 var zippedContent = fileBytesContent.Skip(0x08).Take(contentSize);
@@ -126,7 +129,7 @@ namespace Adapters.w3gFiles
 
         private IEnumerable<GameSlot> ParseGameSlots(int numberOfPlayerRecords, byte[] startOfRecords)
         {
-            for (int i = 0; i < numberOfPlayerRecords; i++)
+            for (var i = 0; i < numberOfPlayerRecords; i++)
             {
                 var playerId = (int) startOfRecords[i * 9 + 0];
                 var slotUsage = ToSlotUsage(startOfRecords[i * 9 + 2]);
@@ -141,13 +144,13 @@ namespace Adapters.w3gFiles
         {
             switch (startOfRecord)
             {
-                case 0X01 : return Race.Human;
-                case 0X02 : return Race.Orc;
-                case 0X04 : return Race.NightElve;
-                case 0X08 : return Race.Undead;
-                case 0X20 : return Race.Random;
-                case 0X40 : return Race.Fixed;
-                default : return Race.Unknown;
+                case 0X01: return Race.Human;
+                case 0X02: return Race.Orc;
+                case 0X04: return Race.NightElve;
+                case 0X08: return Race.Undead;
+                case 0X20: return Race.Random;
+                case 0X40: return Race.Fixed;
+                default: return Race.Unknown;
             }
         }
 
@@ -155,10 +158,10 @@ namespace Adapters.w3gFiles
         {
             switch (startOfRecord)
             {
-                case 0X00 : return SlotUsage.Empty;
-                case 0X01 : return SlotUsage.Closed;
-                case 0X02 : return SlotUsage.Used;
-                default : return SlotUsage.Unknown;
+                case 0X00: return SlotUsage.Empty;
+                case 0X01: return SlotUsage.Closed;
+                case 0X02: return SlotUsage.Used;
+                default: return SlotUsage.Unknown;
             }
         }
 
@@ -189,7 +192,7 @@ namespace Adapters.w3gFiles
 
         private uint GetPlayerCount(List<byte> bytesDecompressed)
         {
-            var uInt32 = BitConverter.ToUInt32(new byte[] { bytesDecompressed[0], 0, 0, 0}, 0);
+            var uInt32 = BitConverter.ToUInt32(new byte[] {bytesDecompressed[0], 0, 0, 0}, 0);
             return uInt32;
         }
 
@@ -313,10 +316,10 @@ namespace Adapters.w3gFiles
         {
             var offset = 0;
             while (_gameActionBytes[offset] != 0)
-            {
                 switch (_gameActionBytes[offset])
                 {
-                    case GameActions.PlayerActionNew: case GameActions.PlayerActionOld:
+                    case GameActions.PlayerActionNew:
+                    case GameActions.PlayerActionOld:
                     {
                         var bytesForActions = new[] {_gameActionBytes[offset + 1], _gameActionBytes[offset + 2]}.Word();
                         offset += 3 + bytesForActions;
@@ -333,7 +336,12 @@ namespace Adapters.w3gFiles
                     }
                     case GameActions.LeftGame:
                     {
+                        var reason = _gameActionBytes[offset + 1];
+                        var playerId = (int) _gameActionBytes[offset + 5];
+                        var result = _gameActionBytes[offset + 6];
+
                         offset += 14;
+                        yield return new PlayerLeft(playerId, reason, result);
                         break;
                     }
                     // all unecessary stuff below
@@ -352,12 +360,26 @@ namespace Adapters.w3gFiles
                         offset += 9;
                         break;
                     }
-                        default: throw new ArgumentException($"Unknown Action: 0x{BitConverter.ToString(new [] { _gameActionBytes[offset]})} found, can not parse this replay");
+                    default:
+                        Console.WriteLine(
+                            $"Could not parse Actiontype0x{BitConverter.ToString(new[] {_gameActionBytes[offset]})} on Location {offset}, will abort parsing Actions, actionlist is most likely not comprehensive");
+                        yield break;
                 }
-            }
         }
+    }
 
-        public ICollection<ChatMessage> Messages { get; } = new Collection<ChatMessage>();
+    public class PlayerLeft : IGameAction
+    {
+        public int PlayerId { get; }
+        public uint Reason { get; }
+        public uint Result { get; }
+
+        public PlayerLeft(int playerId, uint reason, uint result)
+        {
+            PlayerId = playerId;
+            Reason = reason;
+            Result = result;
+        }
     }
 
     public class GameActions

@@ -30,9 +30,17 @@ namespace Adapters.w3gFiles
             var allPlayers = new List<Player> {host.GameOwner};
             allPlayers.AddRange(host.Players);
 
-            var chatMessages = actions.Where(action => action.GetType() == typeof(ChatMessage)).Select(mes => (ChatMessage) mes);
+            var gameActions = actions.ToList();
+            var chatMessages = gameActions.Where(action => action.GetType() == typeof(ChatMessage)).Select(mes => (ChatMessage) mes);
+            var leftMessages = gameActions.Where(action => action.GetType() == typeof(PlayerLeft)).Select(mes => (PlayerLeft) mes);
+            var winners = GetWinners(leftMessages, allPlayers);
             return new Wc3Game(host.GameOwner, expansionType, version, isMultiPlayer, time, host.GameType, host.Map,
-                allPlayers, host.GameSlots, chatMessages);
+                allPlayers, host.GameSlots, chatMessages, winners);
+        }
+
+        private IEnumerable<Player> GetWinners(IEnumerable<PlayerLeft> leftMessages, List<Player> allPlayers)
+        {
+            return null;
         }
     }
 }
