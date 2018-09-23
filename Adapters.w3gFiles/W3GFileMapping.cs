@@ -311,19 +311,19 @@ namespace Adapters.w3gFiles
 
         public IEnumerable<IGameAction> GetActions()
         {
-            int offset = 0;
-            for (int i = 0; i < 2000; i++)
+            var offset = 0;
+            while (_gameActionBytes[offset] != 0)
             {
                 switch (_gameActionBytes[offset])
                 {
-                    case 0x1E:
-                    case 0x1F:
+                    case GameActions.TimeSlotOld:
+                    case GameActions.TimeSlotNew:
                     {
                         var bytesForActions = new[] {_gameActionBytes[offset + 1], _gameActionBytes[offset + 2]}.Word();
                         offset += 3 + bytesForActions;
                         break;
                     }
-                    case 0x20:
+                    case GameActions.ChatMessage:
                     {
                         var playerId = (int) _gameActionBytes[offset + 1];
                         var messageCount = new[] {_gameActionBytes[offset + 2], _gameActionBytes[offset + 3]}.Word();
@@ -347,11 +347,24 @@ namespace Adapters.w3gFiles
                         offset += 9;
                         break;
                     }
-                        default: throw new ArgumentException($"Unknown Action: {BitConverter.ToString(new [] { _gameActionBytes[offset]})} found, can not parse this replay");
+                    case GameActions.LeftGame:
+                    {
+                        offset += 14;
+                        break;
+                    }
+                        default: throw new ArgumentException($"Unknown Action: 0x{BitConverter.ToString(new [] { _gameActionBytes[offset]})} found, can not parse this replay");
                 }
             }
         }
 
         public ICollection<ChatMessage> Messages { get; } = new Collection<ChatMessage>();
+    }
+
+    public class GameActions
+    {
+        public const byte LeftGame = 0x17;
+        public const byte ChatMessage = 0x20;
+        public const byte TimeSlotNew = 0x1E;
+        public const byte TimeSlotOld = 0x1F;
     }
 }
