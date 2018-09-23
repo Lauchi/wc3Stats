@@ -316,8 +316,8 @@ namespace Adapters.w3gFiles
             {
                 switch (_gameActionBytes[offset])
                 {
-                    case GameActions.TimeSlotOld:
-                    case GameActions.TimeSlotNew:
+                    case GameActions.PlayerActionOld:
+                    case GameActions.PlayerActionNew:
                     {
                         var bytesForActions = new[] {_gameActionBytes[offset + 1], _gameActionBytes[offset + 2]}.Word();
                         offset += 3 + bytesForActions;
@@ -332,6 +332,12 @@ namespace Adapters.w3gFiles
                         yield return new ChatMessage(playerId, message);
                         break;
                     }
+                    case GameActions.LeftGame:
+                    {
+                        offset += 14;
+                        break;
+                    }
+                    // all unecessary stuff below
                     case 0x22:
                     {
                         offset += 6;
@@ -347,11 +353,6 @@ namespace Adapters.w3gFiles
                         offset += 9;
                         break;
                     }
-                    case GameActions.LeftGame:
-                    {
-                        offset += 14;
-                        break;
-                    }
                         default: throw new ArgumentException($"Unknown Action: 0x{BitConverter.ToString(new [] { _gameActionBytes[offset]})} found, can not parse this replay");
                 }
             }
@@ -364,7 +365,7 @@ namespace Adapters.w3gFiles
     {
         public const byte LeftGame = 0x17;
         public const byte ChatMessage = 0x20;
-        public const byte TimeSlotNew = 0x1E;
-        public const byte TimeSlotOld = 0x1F;
+        public const byte PlayerActionNew = 0x1E;
+        public const byte PlayerActionOld = 0x1F;
     }
 }
