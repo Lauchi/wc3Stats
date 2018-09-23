@@ -316,8 +316,7 @@ namespace Adapters.w3gFiles
             {
                 switch (_gameActionBytes[offset])
                 {
-                    case GameActions.PlayerActionOld:
-                    case GameActions.PlayerActionNew:
+                    case GameActions.PlayerActionNew: case GameActions.PlayerActionOld:
                     {
                         var bytesForActions = new[] {_gameActionBytes[offset + 1], _gameActionBytes[offset + 2]}.Word();
                         offset += 3 + bytesForActions;
