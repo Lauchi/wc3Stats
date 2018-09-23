@@ -12,6 +12,7 @@ namespace Adapters.w3gFiles
         private byte[] _fileBytes;
         private byte[] _fileBytesContent;
         private byte[] _fileBytesHeader;
+        private byte[] _fileBytesGameActions;
 
         public ExpansionType GetExpansionType()
         {
@@ -98,6 +99,9 @@ namespace Adapters.w3gFiles
             var gameStartSegment = bytesDecompressed.Skip(startOfGameStartSegment + 1).ToList();
             var gameSlots = GetGameSlots(gameStartSegment);
 
+
+            var startOfActionIndex = startOfGameStartSegment + gameSlots.Count * 9 + 11;
+            _fileBytesGameActions = bytesDecompressed.Skip(startOfActionIndex+ 15).ToArray();
             return new MapAndPlayers(new Map(gameName, mapName), players, gameSlots);
         }
 
@@ -294,5 +298,14 @@ namespace Adapters.w3gFiles
                 return sOutput.ToArray();
             }
         }
+
+        public IEnumerable<PlayerLeaveAction> GetPlayerLeftActions()
+        {
+            return null;
+        }
+    }
+
+    public class PlayerLeaveAction
+    {
     }
 }

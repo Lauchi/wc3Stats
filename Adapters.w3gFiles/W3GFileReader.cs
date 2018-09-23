@@ -27,7 +27,9 @@ namespace Adapters.w3gFiles
 
             var allPlayers = new List<Player> { host.GameOwner };
             allPlayers.AddRange(host.Players);
-            return new Wc3Game(host.GameOwner, expansionType, version, isMultiPlayer, time, host.GameType, host.Map, allPlayers, host.GameSlots);
+            var leaveActions = _mapping.GetPlayerLeftActions();
+
+            return new Wc3Game(host.GameOwner, expansionType, version, isMultiPlayer, time, host.GameType, host.Map, allPlayers, host.GameSlots, null);
         }
     }
 }
