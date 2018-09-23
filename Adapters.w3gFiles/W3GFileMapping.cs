@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
@@ -12,7 +13,7 @@ namespace Adapters.w3gFiles
         private byte[] _fileBytes;
         private byte[] _fileBytesContent;
         private byte[] _fileBytesHeader;
-        private byte[] _fileBytesGameActions;
+        private byte[] _gameActionBytes;
         private byte[] _contentDecompressed;
 
         public ExpansionType GetExpansionType()
@@ -56,50 +57,27 @@ namespace Adapters.w3gFiles
 
         public TimeSpan GetPlayedTime()
         {
-            var milliseconds = _fileBytesHeader.DWord(0x000C);
+            var milliseconds = _fileBytesHeader.DWord(0x0C);
             var timeSpan = new TimeSpan(0, 0, 0, 0, (int) milliseconds);
             return timeSpan;
         }
 
-        public GameOwnerHeader GetGameMetaData()
+        public GameHeader GetGameMetaData()
         {
             var playerRecord = GetPlayerRecord(_contentDecompressed.Skip(4).ToList());
-            var map = GetTheMap(_contentDecompressed, playerRecord.Name.Length + 7);
 
-            return new GameOwnerHeader(
-                new GameOwner(playerRecord.Name, playerRecord.PlayerId, playerRecord.Race, playerRecord.GameType, playerRecord.IsAdditionalPlayer),
-                playerRecord.GameType, map.Map, map.Players, map.GameSlots);
-        }
-
-        private IEnumerable<byte> Decompress(byte[] fileBytesContent)
-        {
-            var bytes = new List<byte>();
-            for (int i = 0; i < 10; i++)
-            {
-                var contentSize = fileBytesContent.Word(0x0000);
-                var zippedContent = fileBytesContent.Skip(8).Take(contentSize);
-                var decompressed = DecompressZLibRaw(zippedContent.ToArray());
-                bytes.AddRange(decompressed);
-                fileBytesContent = fileBytesContent.Skip(contentSize + 8).ToArray();
-            }
-
-            return bytes;
-        }
-
-        private MapAndPlayers GetTheMap(byte[] bytesDecompressed, int index)
-        {
-            var findIndex = bytesDecompressed.ToList().FindIndex(index, b => b == 0x00);
-            var enumerable = bytesDecompressed.Skip(findIndex + 3).ToArray();
+            var findIndex = _contentDecompressed.ToList().FindIndex(playerRecord.Name.Length + 7, b => b == 0x00);
+            var enumerable = _contentDecompressed.Skip(findIndex + 3).ToArray();
             var gameName = enumerable.UntilNull();
-            var compressedMapHeader = bytesDecompressed.Skip(findIndex + 5 + gameName.Length).ToArray();
+            var compressedMapHeader = _contentDecompressed.Skip(findIndex + 5 + gameName.Length).ToArray();
             var encodedString = compressedMapHeader.TakeWhile(b => b != '\0').ToArray();
             var encodedStringLength = encodedString.Length;
             var mapName = GetMapName(encodedString);
             var startOfPlayerCount = encodedStringLength + 6 + findIndex + gameName.Length;
-            var playerCount = GetPlayerCount(bytesDecompressed.Skip(startOfPlayerCount).ToList());
+            var playerCount = GetPlayerCount(_contentDecompressed.Skip(startOfPlayerCount).ToList());
             var startOfPlayerList = startOfPlayerCount + 12;
 
-            var players = GetPlayers(bytesDecompressed.Skip(startOfPlayerList).ToList(), playerCount).ToList();
+            var players = GetPlayers(_contentDecompressed.Skip(startOfPlayerList).ToList(), playerCount).ToList();
 
             var playerListSize = 0;
             foreach (var player in players)
@@ -109,13 +87,32 @@ namespace Adapters.w3gFiles
             }
 
             var startOfGameStartSegment = startOfPlayerList + playerListSize;
-            var gameStartSegment = bytesDecompressed.Skip(startOfGameStartSegment + 1).ToList();
+            var gameStartSegment = _contentDecompressed.Skip(startOfGameStartSegment + 1).ToList();
             var gameSlots = GetGameSlots(gameStartSegment);
 
 
             var startOfActionIndex = startOfGameStartSegment + gameSlots.Count * 9 + 11;
-            _fileBytesGameActions = bytesDecompressed.Skip(startOfActionIndex+ 15).ToArray();
-            return new MapAndPlayers(new Map(gameName, mapName), players, gameSlots);
+            _gameActionBytes = _contentDecompressed.Skip(startOfActionIndex+ 15).ToArray();
+            var map = new MapAndPlayers(new Map(gameName, mapName), players, gameSlots);
+
+            return new GameHeader(
+                new GameOwner(playerRecord.Name, playerRecord.PlayerId, playerRecord.Race, playerRecord.GameType, playerRecord.IsAdditionalPlayer),
+                playerRecord.GameType, map.Map, map.Players, map.GameSlots);
+        }
+
+        private IEnumerable<byte> Decompress(byte[] fileBytesContent)
+        {
+            var bytes = new List<byte>();
+            while(fileBytesContent.Length != 0)
+            {
+                var contentSize = fileBytesContent.Word(0x00);
+                var zippedContent = fileBytesContent.Skip(0x08).Take(contentSize);
+                var decompressed = DecompressZLibRaw(zippedContent.ToArray());
+                bytes.AddRange(decompressed);
+                fileBytesContent = fileBytesContent.Skip(contentSize + 0x08).ToArray();
+            }
+
+            return bytes;
         }
 
         private List<GameSlot> GetGameSlots(List<byte> gameStartSegment)
@@ -312,13 +309,49 @@ namespace Adapters.w3gFiles
             }
         }
 
-        public IEnumerable<PlayerLeaveAction> GetPlayerLeftActions()
+        public IEnumerable<IGameAction> GetActions()
         {
-            return null;
+            int offset = 0;
+            for (int i = 0; i < 2000; i++)
+            {
+                switch (_gameActionBytes[offset])
+                {
+                    case 0x1E:
+                    case 0x1F:
+                    {
+                        var bytesForActions = new[] {_gameActionBytes[offset + 1], _gameActionBytes[offset + 2]}.Word();
+                        offset += 3 + bytesForActions;
+                        break;
+                    }
+                    case 0x20:
+                    {
+                        var playerId = (int) _gameActionBytes[offset + 1];
+                        var messageCount = new[] {_gameActionBytes[offset + 2], _gameActionBytes[offset + 3]}.Word();
+                        var message = _gameActionBytes.UntilNull(offset + 9);
+                        offset += 4 + messageCount;
+                        yield return new ChatMessage(playerId, message);
+                        break;
+                    }
+                    case 0x22:
+                    {
+                        offset += 6;
+                        break;
+                    }
+                    case 0x23:
+                    {
+                        offset += 11;
+                        break;
+                    }
+                    case 0x2F:
+                    {
+                        offset += 9;
+                        break;
+                    }
+                        default: throw new ArgumentException($"Unknown Action: {BitConverter.ToString(new [] { _gameActionBytes[offset]})} found, can not parse this replay");
+                }
+            }
         }
-    }
 
-    public class PlayerLeaveAction
-    {
+        public ICollection<ChatMessage> Messages { get; } = new Collection<ChatMessage>();
     }
 }

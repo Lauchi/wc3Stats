@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Adapters.w3gFiles
@@ -24,12 +25,14 @@ namespace Adapters.w3gFiles
             var time = _mapping.GetPlayedTime();
 
             var host = _mapping.GetGameMetaData();
+            var actions = _mapping.GetActions();
 
-            var allPlayers = new List<Player> { host.GameOwner };
+            var allPlayers = new List<Player> {host.GameOwner};
             allPlayers.AddRange(host.Players);
-            var leaveActions = _mapping.GetPlayerLeftActions();
 
-            return new Wc3Game(host.GameOwner, expansionType, version, isMultiPlayer, time, host.GameType, host.Map, allPlayers, host.GameSlots, null);
+            var chatMessages = actions.Where(action => action.GetType() == typeof(ChatMessage)).Select(mes => (ChatMessage) mes);
+            return new Wc3Game(host.GameOwner, expansionType, version, isMultiPlayer, time, host.GameType, host.Map,
+                allPlayers, host.GameSlots, chatMessages);
         }
     }
 }

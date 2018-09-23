@@ -91,12 +91,14 @@ namespace Adapters.w3gFiles.Tests
         }
 
         [Test]
-        public async Task TestGetWinner()
+        public async Task TestGetChatMessages()
         {
             var w3GFileReader = new W3GFileReader(new W3GFileMapping());
             var game = await w3GFileReader.Read("TestGames/1_29.w3g");
-            Assert.AreEqual(1, game.Winners.ToList()[0].PlayerId);
-            Assert.AreEqual(Race.NightElve, game.GameSlots.ToList()[0].Race);
+            Assert.AreEqual(1, game.ChatMessages.ToList()[0].PlayerId);
+            Assert.AreEqual(2, game.ChatMessages.ToList()[1].PlayerId);
+            Assert.AreEqual("gl hf", game.ChatMessages.ToList()[0].Message);
+            Assert.AreEqual("gl", game.ChatMessages.ToList()[1].Message);
         }
     }
 }

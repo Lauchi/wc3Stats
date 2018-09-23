@@ -2,7 +2,7 @@
 
 namespace Adapters.w3gFiles
 {
-    public class GameOwnerHeader
+    public class GameHeader
     {
         public GameOwner GameOwner { get; }
         public GameMode GameType { get; }
@@ -10,7 +10,7 @@ namespace Adapters.w3gFiles
         public IEnumerable<Player> Players { get; }
         public IEnumerable<GameSlot> GameSlots { get; }
 
-        public GameOwnerHeader(GameOwner gameOwner, GameMode gameType, Map map, IEnumerable<Player> players, IEnumerable<GameSlot> gameSlots)
+        public GameHeader(GameOwner gameOwner, GameMode gameType, Map map, IEnumerable<Player> players, IEnumerable<GameSlot> gameSlots)
         {
             GameOwner = gameOwner;
             GameType = gameType;
