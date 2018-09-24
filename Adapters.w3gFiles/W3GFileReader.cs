@@ -32,10 +32,13 @@ namespace Adapters.w3gFiles
             var playersWithTeam = MergeTeams(allPlayers, gameMetaData.GameSlots);
 
             var gameActions = actions.ToList();
-            var chatMessages = gameActions.Where(action => action.GetType() == typeof(ChatMessage)).Select(mes => (ChatMessage) mes);
-            var leftMessages = gameActions.Where(action => action.GetType() == typeof(PlayerLeft)).Select(mes => (PlayerLeft) mes);
+            var chatMessages = gameActions.Where(action => action.GetType() == typeof(ChatMessage))
+                .Select(mes => (ChatMessage) mes);
+            var leftMessages = gameActions.Where(action => action.GetType() == typeof(PlayerLeft))
+                .Select(mes => (PlayerLeft) mes);
             var winners = GetWinners(leftMessages, allPlayers);
-            return new Wc3Game(gameMetaData.GameOwner, expansionType, version, isMultiPlayer, time, gameMetaData.GameType, gameMetaData.Map,
+            return new Wc3Game(gameMetaData.GameOwner, expansionType, version, isMultiPlayer, time,
+                gameMetaData.GameType, gameMetaData.Map,
                 playersWithTeam, gameMetaData.GameSlots, chatMessages, winners);
         }
 
@@ -53,18 +56,40 @@ namespace Adapters.w3gFiles
         private IEnumerable<Player> GetWinners(IEnumerable<PlayerLeft> leftMessages, List<Player> allPlayers)
         {
             var playerLefts = leftMessages.ToList();
-            if (playerLefts.Count == allPlayers.Count)
+            var playerLeftLast = playerLefts.Last();
+            switch (playerLeftLast.Reason)
             {
-                var winnerId = playerLefts.Last();
-                var winner = allPlayers.First(pla => pla.PlayerId == winnerId.PlayerId);
-                yield return winner;
+                case LeftReason.ConnectionClosedByGame:
+                {
+                    switch (playerLeftLast.Result)
+                    {
+                        case LeftResult.PlayerWon:
+                            yield return allPlayers.First(player => player.PlayerId == playerLeftLast.PlayerId);
+                            break;
+                        case LeftResult.PlayerWasCompletelyErased:
+                            yield return allPlayers.First(player => player.PlayerId != playerLeftLast.PlayerId);
+                            break;
+                        case LeftResult.PlayerLeft:
+                        {
+                            if (IsWinner(playerLefts))
+                            {
+                                yield return allPlayers.First(player => player.PlayerId == playerLeftLast.PlayerId);
+                            }
+                            yield return allPlayers.First(player => player.PlayerId != playerLeftLast.PlayerId);
+                            break;
+                        }
+                    }
+                }
+                    break;
             }
-            else if (playerLefts.Count < allPlayers.Count)
-            {
-                var winnerId = playerLefts.First();
-                var winner = allPlayers.First(pla => pla.PlayerId != winnerId.PlayerId);
-                yield return winner;
-            }
+        }
+
+        private bool IsWinner(List<PlayerLeft> playerLefts)
+        {
+            var playerLeftLast = playerLefts.Last();
+            var playerLeftLastPrevious = playerLefts.AsEnumerable().Reverse().Skip(1).First();
+            if (playerLeftLast.UnknownWinFlag == playerLeftLastPrevious.UnknownWinFlag) return false;
+            return false;
         }
     }
 }
