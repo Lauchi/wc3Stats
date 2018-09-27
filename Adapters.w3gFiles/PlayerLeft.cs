@@ -7,10 +7,18 @@
         public LeftReason Reason { get; }
         public LeftResult Result { get; }
 
+        public PlayerLeft(int playerId, LeftReason reason, LeftResult result, uint unknownWinFlag)
+        {
+            PlayerId = playerId;
+            Reason = reason;
+            Result = result;
+            UnknownWinFlag = unknownWinFlag;
+        }
+
         public PlayerLeft(int playerId, uint reason, uint result, uint unknownWinFlag)
         {
             PlayerId = playerId;
-            UnknownWinFlag = unknownWinFlag;
+
             switch (reason)
             {
                 case 0x01: Reason = LeftReason.ConnectionClosedByServer;
@@ -36,16 +44,8 @@
                 case 0x0B: Result = LeftResult.PlayerLeftAsObserver;
                     break;
             }
+
+            UnknownWinFlag = unknownWinFlag;
         }
-    }
-
-    public enum LeftReason
-    {
-        ConnectionClosedByServer, ConnectionClosedByGame, Unknown
-    }
-
-    public enum LeftResult
-    {
-        PlayerDisconnected, PlayerLeft, PlayerWasCompletelyErased, PlayerWon, Draw, PlayerLeftAsObserver
     }
 }

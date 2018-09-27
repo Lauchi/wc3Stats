@@ -341,6 +341,7 @@ namespace Adapters.w3gFiles
                         var result = _gameActionBytes[offset + 6];
                         var unknownWinFlag = _gameActionBytes.DWord(offset + 10);
                         offset += 14;
+
                         yield return new PlayerLeft(playerId, reason, result, unknownWinFlag);
                         break;
                     }
@@ -366,13 +367,5 @@ namespace Adapters.w3gFiles
                         yield break;
                 }
         }
-    }
-
-    public class GameActions
-    {
-        public const byte LeftGame = 0x17;
-        public const byte ChatMessage = 0x20;
-        public const byte PlayerActionNew = 0x1E;
-        public const byte PlayerActionOld = 0x1F;
     }
 }
