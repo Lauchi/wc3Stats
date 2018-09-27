@@ -31,25 +31,25 @@ namespace Adapters.w3gFiles
 
             var allPlayers = new List<Player> {gameMetaData.GameOwner};
             allPlayers.AddRange(gameMetaData.Players);
-            var playersWithTeam = MergeTeams(allPlayers, gameMetaData.GameSlots);
+            var playersWithTeam = MergeTeams(allPlayers, gameMetaData.GameSlots).ToList();
 
             var gameActions = actions.ToList();
             var chatMessages = gameActions.Where(action => action.GetType() == typeof(ChatMessage))
                 .Select(mes => (ChatMessage) mes);
             var leftMessages = gameActions.Where(action => action.GetType() == typeof(PlayerLeft))
                 .Select(mes => (PlayerLeft) mes);
-            var winners = _winnerDeclarer.GetWinners(leftMessages, allPlayers, gameMetaData.GameOwner.PlayerId);
+            var winners = _winnerDeclarer.GetWinners(leftMessages, playersWithTeam, gameMetaData.GameOwner.PlayerId);
             return new Wc3Game(gameMetaData.GameOwner, expansionType, version, isMultiPlayer, time,
                 gameMetaData.GameType, gameMetaData.Map,
                 playersWithTeam, gameMetaData.GameSlots, chatMessages, winners);
         }
 
-        private IEnumerable<Player> MergeTeams(List<Player> allPlayers, IEnumerable<GameSlot> gameSlots)
+        private IEnumerable<Player> MergeTeams(IEnumerable<Player> allPlayers, IEnumerable<GameSlot> gameSlots)
         {
-            var players = gameSlots.ToList();
+            var slots = gameSlots.ToList();
             foreach (var player in allPlayers)
             {
-                var gameSlot = players.First(slot => slot.PlayerId == player.PlayerId);
+                var gameSlot = slots.First(slot => slot.PlayerId == player.PlayerId);
                 var updatedPlayer = new Player(player.Name, player.PlayerId, player.Race, player.GameType, player.IsAdditionalPlayer,
                     gameSlot.TeamNumber);
                 yield return updatedPlayer;

@@ -23,7 +23,7 @@ namespace Adapters.w3gFiles.Tests
                 new PlayerLeft(4, LeftReason.ConnectionClosedByGame, LeftResult.PlayerLeft, 10),
                 new PlayerLeft(2, LeftReason.ConnectionClosedByGame, LeftResult.PlayerLeft, 10),
                 new PlayerLeft(3, LeftReason.ConnectionClosedByGame, LeftResult.PlayerLeft, 10),
-                new PlayerLeft(1, LeftReason.ConnectionClosedByGame, LeftResult.PlayerLeft, 11)
+                new PlayerLeft(1, LeftReason.ConnectionClosedByGame, LeftResult.PlayerLeft, 10)
             };
 
             var winners = w3GFileReader.GetWinners(winnerEvents, players, 1).ToList();
@@ -44,7 +44,7 @@ namespace Adapters.w3gFiles.Tests
             var winnerEvents = new List<PlayerLeft>
             {
                 new PlayerLeft(2, LeftReason.ConnectionClosedByGame, LeftResult.PlayerLeft, 10),
-                new PlayerLeft(1, LeftReason.ConnectionClosedByGame, LeftResult.PlayerLeft, 11),
+                new PlayerLeft(1, LeftReason.ConnectionClosedByGame, LeftResult.PlayerLeft, 10),
             };
 
             var winners = w3GFileReader.GetWinners(winnerEvents, players, 1).ToList();
