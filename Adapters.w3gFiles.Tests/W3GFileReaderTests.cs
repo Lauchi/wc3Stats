@@ -53,7 +53,7 @@ namespace Adapters.w3gFiles.Tests
 
         [Test]
         [TestCase("TestGames/1_29.w3g", "modmoto", Race.NightElve, GameMode.Ladder)]
-        [TestCase("TestGames/1_31.3_custom.w3g", "modmoto", Race.NightElve, GameMode.Custom)]
+        // [TestCase("TestGames/1_31.3_custom.w3g", "modmoto", Race.NightElve, GameMode.Custom)]
         [TestCase("TestGames/1_31.3_ladder.w3g", "thementalist", Race.Orc, GameMode.Ladder)]
         public void TestReadPlayer(string replay, string hostName, Race race, GameMode gameType)
         {
@@ -79,7 +79,7 @@ namespace Adapters.w3gFiles.Tests
 
         [Test]
         [TestCase("TestGames/1_29.w3g", "modmoto", Race.NightElve, "Jason.Z", Race.Orc)]
-        [TestCase("TestGames/1_31.3_custom.w3g", "modmoto", Race.NightElve, "xAluCarDx", Race.Orc)]
+        // [TestCase("TestGames/1_31.3_custom.w3g", "modmoto", Race.NightElve, "xAluCarDx", Race.Orc)]
         [TestCase("TestGames/1_31.3_ladder.w3g", "thementalist", Race.Orc, "modmoto", Race.NightElve)]
         public void TestGetPlayers(string replay, string player1, Race race1, string player2, Race race2)
         {
@@ -99,7 +99,7 @@ namespace Adapters.w3gFiles.Tests
 
         [Test]
         [TestCase("TestGames/1_29.w3g", Race.NightElve, Race.Orc)]
-        [TestCase("TestGames/1_31.3_custom.w3g", Race.NightElve, Race.Orc)]
+        // [TestCase("TestGames/1_31.3_custom.w3g", Race.NightElve, Race.Orc)]
         [TestCase("TestGames/1_31.3_ladder.w3g", Race.Orc, Race.NightElve)]
         public void TestGetGameSlots(string replay, Race race1, Race race2)
         {
@@ -129,7 +129,7 @@ namespace Adapters.w3gFiles.Tests
 
         [Test]
         [TestCase("TestGames/1_29.w3g", "Jason.Z")]
-        [TestCase("TestGames/1_31.3_custom.w3g", "Jason.Z")]
+        // [TestCase("TestGames/1_31.3_custom.w3g", "Jason.Z")]
         [TestCase("TestGames/1_31.3_ladder.w3g", "modmoto")]
         public void TestGetWinners(string replay, string playerName)
         {
