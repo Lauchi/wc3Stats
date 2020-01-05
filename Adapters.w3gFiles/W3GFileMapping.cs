@@ -74,8 +74,8 @@ namespace Adapters.w3gFiles
             var playerRecord = GetPlayerRecord(_contentDecompressed.Skip(4).ToList());
 
             var findIndex = _contentDecompressed.ToList().FindIndex(playerRecord.Name.Length + 7, b => b == 0x00);
-            var enumerable = _contentDecompressed.Skip(findIndex + 3).ToArray();
-            var gameName = enumerable.UntilNull();
+            var gameNameArray = _contentDecompressed.Skip(findIndex + 3).ToArray();
+            var gameName = gameNameArray.UntilNull();
             var compressedMapHeader = _contentDecompressed.Skip(findIndex + 5 + gameName.Length).ToArray();
             var encodedString = compressedMapHeader.TakeWhile(b => b != '\0').ToArray();
             var encodedStringLength = encodedString.Length;
@@ -231,8 +231,9 @@ namespace Adapters.w3gFiles
             }
 
             var decompressedJoinesName = string.Join("", decodedString);
-            var mapName = string.Join("", decompressedJoinesName.Split('\0')[6].Skip(4));
-            return mapName;
+            var mapName = decompressedJoinesName.Split('/').First(s => s.Contains(".w3x"));
+            var mapNameForReal = mapName.Split(".w3x").First();
+            return mapNameForReal;
         }
 
         private static bool IsChecksumByte(int positionInStream)

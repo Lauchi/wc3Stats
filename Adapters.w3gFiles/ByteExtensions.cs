@@ -20,7 +20,8 @@ namespace Adapters.w3gFiles
         public static string UntilNull(this IEnumerable<byte> data)
         {
             var array = data.TakeWhile(b => b != 0).ToArray();
-            return Encoding.UTF8.GetString(array);
+            var encodedString = Encoding.UTF8.GetString(array);
+            return encodedString;
         }
 
         public static string UntilNull(this byte[] data, int offset)

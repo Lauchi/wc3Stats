@@ -60,7 +60,8 @@ namespace Adapters.w3gFiles
         private IEnumerable<Player> MergeTeams(IEnumerable<Player> allPlayers, IEnumerable<GameSlot> gameSlots)
         {
             var slots = gameSlots.ToList();
-            foreach (var player in allPlayers)
+            var allRealPlayers = allPlayers.Where(p => p.IsAdditionalPlayer || p.GetType() == typeof(GameOwner));
+            foreach (var player in allRealPlayers)
             {
                 var gameSlot = slots.First(slot => slot.PlayerId == player.PlayerId);
                 var updatedPlayer = new Player(player.Name, player.PlayerId, player.Race, player.GameType, player.IsAdditionalPlayer,

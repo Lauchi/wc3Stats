@@ -42,7 +42,7 @@ namespace Adapters.w3gFiles.Tests
 
         [Test]
         [TestCase("TestGames/1_29.w3g", 12, 14, 325)]
-        [TestCase("TestGames/1_31.3_custom.w3g", 12, 14, 325)]
+        [TestCase("TestGames/1_31.3_custom.w3g", 27, 36, 375)]
         [TestCase("TestGames/1_31.3_ladder.w3g", 28, 32, 175)]
         public async Task TestReadTime(string replay, int minutes, int seconds, int milliseconds)
         {
@@ -52,35 +52,34 @@ namespace Adapters.w3gFiles.Tests
         }
 
         [Test]
-        [TestCase("TestGames/1_29.w3g", "modmoto", Race.NightElve)]
-        [TestCase("TestGames/1_31.3_custom.w3g", "modmoto", Race.NightElve)]
-        [TestCase("TestGames/1_31.3_ladder.w3g", "thementalist", Race.Orc)]
-        public async Task TestReadPlayer(string replay, string hostName, Race race)
+        [TestCase("TestGames/1_29.w3g", "modmoto", Race.NightElve, GameMode.Ladder)]
+        [TestCase("TestGames/1_31.3_custom.w3g", "modmoto", Race.NightElve, GameMode.Custom)]
+        [TestCase("TestGames/1_31.3_ladder.w3g", "thementalist", Race.Orc, GameMode.Ladder)]
+        public async Task TestReadPlayer(string replay, string hostName, Race race, GameMode gameType)
         {
             var w3GFileReader = new W3GFileReader(replay);
             var game = await w3GFileReader.ReadAsync();
             Assert.AreEqual(hostName, game.Host.Name);
             Assert.AreEqual(1, game.Host.PlayerId);
-            Assert.AreEqual(GameMode.Ladder, game.GameType);
+            Assert.AreEqual(gameType, game.GameType);
             Assert.AreEqual(race, game.Host.Race);
         }
 
         [Test]
-        [TestCase("TestGames/1_29.w3g", "Maps/FrozenThrone/(4)TwistedMeadows.w3x", "(4)TwistedMeadows")]
-        [TestCase("TestGames/1_31.3_custom.w3g", "Maps/FrozenThrone/(4)TwistedMeadows.w3x", "(4)TwistedMeadows")]
-        [TestCase("TestGames/1_31.3_ladder.w3g", "Maps/FrozenThrone/Community/(2)AncientIsles.w3x", "(2)AncientIsles")]
-        public async Task TestMapReadPlayer(string replay, string mapPath, string mapName)
+        [TestCase("TestGames/1_29.w3g", "(4)TwistedMeadows", "BNet")]
+        [TestCase("TestGames/1_31.3_custom.w3g", "(4)TwistedMeadows", "btv4b")]
+        [TestCase("TestGames/1_31.3_ladder.w3g", "(2)AncientIsles", "BNet")]
+        public async Task TestMapAndGameName(string replay, string mapName, string gameName)
         {
             var w3GFileReader = new W3GFileReader(replay);
             var game = await w3GFileReader.ReadAsync();
-            Assert.AreEqual("BNet", game.Map.GameName);
-            Assert.AreEqual(mapPath, game.Map.MapPath);
+            Assert.AreEqual(gameName, game.Map.GameName);
             Assert.AreEqual(mapName, game.Map.MapName);
         }
 
         [Test]
         [TestCase("TestGames/1_29.w3g", "modmoto", Race.NightElve, "Jason.Z", Race.Orc)]
-        [TestCase("TestGames/1_31.3_custom.w3g", "modmoto", Race.NightElve, "Jason.Z", Race.Orc)]
+        [TestCase("TestGames/1_31.3_custom.w3g", "modmoto", Race.NightElve, "xAluCarDx", Race.Orc)]
         [TestCase("TestGames/1_31.3_ladder.w3g", "thementalist", Race.Orc, "modmoto", Race.NightElve)]
         public async Task TestGetPlayers(string replay, string player1, Race race1, string player2, Race race2)
         {
