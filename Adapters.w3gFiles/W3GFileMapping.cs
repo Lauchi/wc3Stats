@@ -35,7 +35,12 @@ namespace Adapters.w3gFiles
             var majorVersion = _fileBytesHeader.DWord(0x0004);
             var buildVersion = _fileBytesHeader.Word(0x0008);
 
-            return new GameVersion(majorVersion, buildVersion);
+            switch (majorVersion)
+            {
+                case 29: return GameVersion.v1_29;
+                case 10031: return GameVersion.v1_31_3;
+                default: return GameVersion.unsupported;
+            }
         }
 
         public PlayerMode GetIsMultiPlayer()
@@ -238,59 +243,36 @@ namespace Adapters.w3gFiles
         private static GameMode GameType(List<byte> bytesDecompressed, int gameTypeIndex)
         {
             var gameTypeByte = bytesDecompressed[gameTypeIndex];
-            var gameType = GameMode.Undefined;
             switch (gameTypeByte)
             {
-                case 0x01:
-                    gameType = GameMode.Custom;
-                    break;
-                case 0x08:
-                    gameType = GameMode.Ladder;
-                    break;
+                case 0x01: return GameMode.Custom;
+                case 0x08: return GameMode.Ladder;
+                default: return GameMode.Undefined;
             }
-
-            return gameType;
         }
 
         private static Race GetRace(GameMode gameType, List<byte> bytesDecompressed, int gameTypeIndex)
         {
-            var race = Race.Undefined;
             switch (gameType)
             {
-                case GameMode.Custom:
-                    race = Race.CustomGame;
-                    break;
+                case GameMode.Custom: return Race.CustomGame;
                 case GameMode.Ladder:
                 {
                     var array = bytesDecompressed.Skip(gameTypeIndex + 5).Take(4).ToArray();
                     var dWord = array.DWord(0);
                     switch (dWord)
                     {
-                        case 0x01:
-                            race = Race.Human;
-                            break;
-                        case 0x02:
-                            race = Race.Orc;
-                            break;
-                        case 0x04:
-                            race = Race.NightElve;
-                            break;
-                        case 0x08:
-                            race = Race.Undead;
-                            break;
-                        case 0x20:
-                            race = Race.Random;
-                            break;
-                        case 0x40:
-                            race = Race.Fixed;
-                            break;
+                        case 0x01: return Race.Human;
+                        case 0x02: return Race.Orc;
+                        case 0x04: return Race.NightElve;
+                        case 0x08: return Race.Undead;
+                        case 0x20: return Race.Random;
+                        case 0x40: return Race.Fixed;
+                        default: return Race.Undefined;
                     }
-
-                    break;
                 }
+                default: return Race.Undefined;
             }
-
-            return race;
         }
 
         public static byte[] DecompressZLibRaw(byte[] bCompressed)

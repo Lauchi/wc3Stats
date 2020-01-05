@@ -1,15 +1,9 @@
 ﻿namespace Adapters.w3gFiles
 {
-    public class GameVersion
+    public enum GameVersion
     {
-        public GameVersion(uint majorVersion, ushort buildVersion)
-        {
-            MajorVersion = majorVersion;
-            BuildVersion = buildVersion;
-        }
-
-        public uint MajorVersion { get; }
-        public ushort BuildVersion { get; }
-        public string AsString => $"1.{MajorVersion}.{BuildVersion}";
+        unsupported,
+        v1_29,
+        v1_31_3,
     }
 }
