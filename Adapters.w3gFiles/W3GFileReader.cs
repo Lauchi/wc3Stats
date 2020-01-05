@@ -18,12 +18,6 @@ namespace Adapters.w3gFiles
             _winnerDeclarer = new WinnerDeclarer();
         }
 
-        public async Task<Wc3Game> ReadAsync()
-        {
-            var fileBytes = await File.ReadAllBytesAsync(_filePath);
-            return ReadW33Game(fileBytes);
-        }
-
         public Wc3Game Read()
         {
             var fileBytes = File.ReadAllBytes(_filePath);

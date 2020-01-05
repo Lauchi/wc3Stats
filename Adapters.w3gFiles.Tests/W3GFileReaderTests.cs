@@ -11,10 +11,10 @@ namespace Adapters.w3gFiles.Tests
         [TestCase("TestGames/1_29.w3g")]
         [TestCase("TestGames/1_31.3_custom.w3g")]
         [TestCase("TestGames/1_31.3_ladder.w3g")]
-        public async Task TestReadExpansionType(string replay)
+        public void TestReadExpansionType(string replay)
         {
             var w3GFileReader = new W3GFileReader(replay);
-            var game = await w3GFileReader.ReadAsync();
+            var game = w3GFileReader.Read();
             Assert.AreEqual(ExpansionType.TheFrozenThrone, game.ExpansionType);
         }
 
@@ -22,10 +22,10 @@ namespace Adapters.w3gFiles.Tests
         [TestCase("TestGames/1_29.w3g", GameVersion.v1_29)]
         [TestCase("TestGames/1_31.3_custom.w3g", GameVersion.v1_31_3)]
         [TestCase("TestGames/1_31.3_ladder.w3g", GameVersion.v1_31_3)]
-        public async Task TestReadVersion(string replay, GameVersion version)
+        public void TestReadVersion(string replay, GameVersion version)
         {
             var w3GFileReader = new W3GFileReader(replay);
-            var game = await w3GFileReader.ReadAsync();
+            var game = w3GFileReader.Read();
             Assert.AreEqual(version, game.Version);
         }
 
@@ -33,10 +33,10 @@ namespace Adapters.w3gFiles.Tests
         [TestCase("TestGames/1_29.w3g")]
         [TestCase("TestGames/1_31.3_custom.w3g")]
         [TestCase("TestGames/1_31.3_ladder.w3g")]
-        public async Task TestReadMultiplayerFlag(string replay)
+        public void TestReadMultiplayerFlag(string replay)
         {
             var w3GFileReader = new W3GFileReader(replay);
-            var game = await w3GFileReader.ReadAsync();
+            var game = w3GFileReader.Read();
             Assert.AreEqual(PlayerMode.MultiPlayer, game.PlayerMode);
         }
 
@@ -44,10 +44,10 @@ namespace Adapters.w3gFiles.Tests
         [TestCase("TestGames/1_29.w3g", 12, 14, 325)]
         [TestCase("TestGames/1_31.3_custom.w3g", 27, 36, 375)]
         [TestCase("TestGames/1_31.3_ladder.w3g", 28, 32, 175)]
-        public async Task TestReadTime(string replay, int minutes, int seconds, int milliseconds)
+        public void TestReadTime(string replay, int minutes, int seconds, int milliseconds)
         {
             var w3GFileReader = new W3GFileReader(replay);
-            var game = await w3GFileReader.ReadAsync();
+            var game = w3GFileReader.Read();
             Assert.AreEqual(new TimeSpan(0, 0, minutes, seconds, milliseconds), game.GameTime);
         }
 
@@ -55,10 +55,10 @@ namespace Adapters.w3gFiles.Tests
         [TestCase("TestGames/1_29.w3g", "modmoto", Race.NightElve, GameMode.Ladder)]
         [TestCase("TestGames/1_31.3_custom.w3g", "modmoto", Race.NightElve, GameMode.Custom)]
         [TestCase("TestGames/1_31.3_ladder.w3g", "thementalist", Race.Orc, GameMode.Ladder)]
-        public async Task TestReadPlayer(string replay, string hostName, Race race, GameMode gameType)
+        public void TestReadPlayer(string replay, string hostName, Race race, GameMode gameType)
         {
             var w3GFileReader = new W3GFileReader(replay);
-            var game = await w3GFileReader.ReadAsync();
+            var game = w3GFileReader.Read();
             Assert.AreEqual(hostName, game.Host.Name);
             Assert.AreEqual(1, game.Host.PlayerId);
             Assert.AreEqual(gameType, game.GameType);
@@ -67,12 +67,12 @@ namespace Adapters.w3gFiles.Tests
 
         [Test]
         [TestCase("TestGames/1_29.w3g", "(4)TwistedMeadows", "BNet")]
-        [TestCase("TestGames/1_31.3_custom.w3g", "(4)TwistedMeadows", "btv4b")]
+        [TestCase("TestGames/1_31.3_custom.w3g", "(2)northernisles", "btv4b")]
         [TestCase("TestGames/1_31.3_ladder.w3g", "(2)AncientIsles", "BNet")]
-        public async Task TestMapAndGameName(string replay, string mapName, string gameName)
+        public void TestMapAndGameName(string replay, string mapName, string gameName)
         {
             var w3GFileReader = new W3GFileReader(replay);
-            var game = await w3GFileReader.ReadAsync();
+            var game = w3GFileReader.Read();
             Assert.AreEqual(gameName, game.Map.GameName);
             Assert.AreEqual(mapName, game.Map.MapName);
         }
@@ -81,10 +81,10 @@ namespace Adapters.w3gFiles.Tests
         [TestCase("TestGames/1_29.w3g", "modmoto", Race.NightElve, "Jason.Z", Race.Orc)]
         [TestCase("TestGames/1_31.3_custom.w3g", "modmoto", Race.NightElve, "xAluCarDx", Race.Orc)]
         [TestCase("TestGames/1_31.3_ladder.w3g", "thementalist", Race.Orc, "modmoto", Race.NightElve)]
-        public async Task TestGetPlayers(string replay, string player1, Race race1, string player2, Race race2)
+        public void TestGetPlayers(string replay, string player1, Race race1, string player2, Race race2)
         {
             var w3GFileReader = new W3GFileReader(replay);
-            var game = await w3GFileReader.ReadAsync();
+            var game = w3GFileReader.Read();
             Assert.AreEqual(player1, game.Players.ToList()[0].Name);
             Assert.AreEqual(1, game.Players.ToList()[0].PlayerId);
             Assert.AreEqual(player2, game.Players.ToList()[1].Name);
@@ -101,10 +101,10 @@ namespace Adapters.w3gFiles.Tests
         [TestCase("TestGames/1_29.w3g", Race.NightElve, Race.Orc)]
         [TestCase("TestGames/1_31.3_custom.w3g", Race.NightElve, Race.Orc)]
         [TestCase("TestGames/1_31.3_ladder.w3g", Race.Orc, Race.NightElve)]
-        public async Task TestGetGameSlots(string replay, Race race1, Race race2)
+        public void TestGetGameSlots(string replay, Race race1, Race race2)
         {
             var w3GFileReader = new W3GFileReader(replay);
-            var game = await w3GFileReader.ReadAsync();
+            var game = w3GFileReader.Read();
             Assert.AreEqual(1, game.GameSlots.ToList()[0].PlayerId);
             Assert.AreEqual(race1, game.GameSlots.ToList()[0].Race);
             Assert.AreEqual(SlotUsage.Used, game.GameSlots.ToList()[0].SlotUsage);
@@ -119,10 +119,10 @@ namespace Adapters.w3gFiles.Tests
         [TestCase("TestGames/1_29.w3g")]
         [TestCase("TestGames/1_31.3_custom.w3g")]
         [TestCase("TestGames/1_31.3_ladder.w3g")]
-        public async Task TestGetChatMessages(string replay)
+        public void TestGetChatMessages(string replay)
         {
             var w3GFileReader = new W3GFileReader(replay);
-            var game = await w3GFileReader.ReadAsync();
+            var game = w3GFileReader.Read();
             var chatMessages = game.ChatMessages.ToList();
             Assert.AreEqual("gl hf", chatMessages[0].Message);
         }
@@ -131,10 +131,10 @@ namespace Adapters.w3gFiles.Tests
         [TestCase("TestGames/1_29.w3g", "Jason.Z")]
         [TestCase("TestGames/1_31.3_custom.w3g", "Jason.Z")]
         [TestCase("TestGames/1_31.3_ladder.w3g", "modmoto")]
-        public async Task TestGetWinners(string replay, string playerName)
+        public void TestGetWinners(string replay, string playerName)
         {
             var w3GFileReader = new W3GFileReader(replay);
-            var game = await w3GFileReader.ReadAsync();
+            var game = w3GFileReader.Read();
             var players = game.Winners.ToList();
             Assert.AreEqual(2, players[0].PlayerId);
             Assert.AreEqual(playerName, players[0].Name);

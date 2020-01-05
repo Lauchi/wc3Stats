@@ -232,8 +232,8 @@ namespace Adapters.w3gFiles
 
             var decompressedJoinesName = string.Join("", decodedString);
             var mapName = decompressedJoinesName.Split('/').First(s => s.Contains(".w3x"));
-            var mapNameForReal = mapName.Split(".w3x").First();
-            return mapNameForReal;
+            var mapNameForReal = mapName.Split(new [] { ".w3x" }, StringSplitOptions.None);
+            return mapNameForReal.First();
         }
 
         private static bool IsChecksumByte(int positionInStream)
@@ -260,7 +260,7 @@ namespace Adapters.w3gFiles
                 case GameMode.Ladder:
                 {
                     var array = bytesDecompressed.Skip(gameTypeIndex + 5).Take(4).ToArray();
-                    var dWord = array.DWord(0);
+                    var dWord = array.DWord();
                     switch (dWord)
                     {
                         case 0x01: return Race.Human;
