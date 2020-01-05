@@ -129,7 +129,7 @@ namespace Adapters.w3gFiles.Tests
 
         [Test]
         [TestCase("TestGames/1_29.w3g", "Jason.Z")]
-        // [TestCase("TestGames/1_31.3_custom.w3g", "Jason.Z")]
+        [TestCase("TestGames/1_31.3_custom.w3g", "Jason.Z")]
         [TestCase("TestGames/1_31.3_ladder.w3g", "modmoto")]
         public void TestGetWinners(string replay, string playerName)
         {
