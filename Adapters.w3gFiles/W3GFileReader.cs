@@ -7,18 +7,31 @@ namespace Adapters.w3gFiles
 {
     public class W3GFileReader
     {
+        private readonly string _filePath;
         private readonly W3GFileMapping _mapping;
-        private IWinnerDeclarer _winnerDeclarer;
+        private readonly IWinnerDeclarer _winnerDeclarer;
 
-        public W3GFileReader()
+        public W3GFileReader(string filePath)
         {
+            _filePath = filePath;
             _mapping = new W3GFileMapping();
             _winnerDeclarer = new WinnerDeclarer();
         }
 
-        public async Task<Wc3Game> Read(string filePath)
+        public async Task<Wc3Game> ReadAsync()
         {
-            var fileBytes = await File.ReadAllBytesAsync(filePath);
+            var fileBytes = await File.ReadAllBytesAsync(_filePath);
+            return ReadW33Game(fileBytes);
+        }
+
+        public Wc3Game Read()
+        {
+            var fileBytes = File.ReadAllBytes(_filePath);
+            return ReadW33Game(fileBytes);
+        }
+
+        private Wc3Game ReadW33Game(byte[] fileBytes)
+        {
             _mapping.SetBytes(fileBytes);
 
             var expansionType = _mapping.GetExpansionType();

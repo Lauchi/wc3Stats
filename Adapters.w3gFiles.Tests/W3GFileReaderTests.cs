@@ -10,40 +10,40 @@ namespace Adapters.w3gFiles.Tests
         [Test]
         public async Task TestReadExpansionType()
         {
-            var w3GFileReader = new W3GFileReader();
-            var game = await w3GFileReader.Read("TestGames/1_29.w3g");
+            var w3GFileReader = new W3GFileReader("TestGames/1_29.w3g");
+            var game = await w3GFileReader.ReadAsync();
             Assert.AreEqual(ExpansionType.TheFrozenThrone, game.ExpansionType);
         }
 
         [Test]
         public async Task TestReadVersion()
         {
-            var w3GFileReader = new W3GFileReader();
-            var game = await w3GFileReader.Read("TestGames/1_29.w3g");
+            var w3GFileReader = new W3GFileReader("TestGames/1_29.w3g");
+            var game = await w3GFileReader.ReadAsync();
             Assert.AreEqual("1.29.6060", game.Version.AsString);
         }
 
         [Test]
         public async Task TestReadMultiplayerFlag()
         {
-            var w3GFileReader = new W3GFileReader();
-            var game = await w3GFileReader.Read("TestGames/1_29.w3g");
+            var w3GFileReader = new W3GFileReader("TestGames/1_29.w3g");
+            var game = await w3GFileReader.ReadAsync();
             Assert.AreEqual(PlayerMode.MultiPlayer, game.PlayerMode);
         }
 
         [Test]
         public async Task TestReadTime()
         {
-            var w3GFileReader = new W3GFileReader();
-            var game = await w3GFileReader.Read("TestGames/1_29.w3g");
+            var w3GFileReader = new W3GFileReader("TestGames/1_29.w3g");
+            var game = await w3GFileReader.ReadAsync();
             Assert.AreEqual(new TimeSpan(0, 0, 12, 14, 325), game.GameTime);
         }
 
         [Test]
         public async Task TestReadPlayer()
         {
-            var w3GFileReader = new W3GFileReader();
-            var game = await w3GFileReader.Read("TestGames/1_29.w3g");
+            var w3GFileReader = new W3GFileReader("TestGames/1_29.w3g");
+            var game = await w3GFileReader.ReadAsync();
             Assert.AreEqual("modmoto", game.Host.Name);
             Assert.AreEqual(1, game.Host.PlayerId);
             Assert.AreEqual(GameMode.Ladder, game.GameType);
@@ -53,8 +53,8 @@ namespace Adapters.w3gFiles.Tests
         [Test]
         public async Task TestMapReadPlayer()
         {
-            var w3GFileReader = new W3GFileReader();
-            var game = await w3GFileReader.Read("TestGames/1_29.w3g");
+            var w3GFileReader = new W3GFileReader("TestGames/1_29.w3g");
+            var game = await w3GFileReader.ReadAsync();
             Assert.AreEqual("BNet", game.Map.GameName);
             Assert.AreEqual("Maps/FrozenThrone/(4)TwistedMeadows.w3x", game.Map.MapPath);
             Assert.AreEqual("(4)TwistedMeadows", game.Map.MapName);
@@ -63,8 +63,8 @@ namespace Adapters.w3gFiles.Tests
         [Test]
         public async Task TestGetPlayers()
         {
-            var w3GFileReader = new W3GFileReader();
-            var game = await w3GFileReader.Read("TestGames/1_29.w3g");
+            var w3GFileReader = new W3GFileReader("TestGames/1_29.w3g");
+            var game = await w3GFileReader.ReadAsync();
             Assert.AreEqual("modmoto", game.Players.ToList()[0].Name);
             Assert.AreEqual(1, game.Players.ToList()[0].PlayerId);
             Assert.AreEqual("Jason.Z", game.Players.ToList()[1].Name);
@@ -80,8 +80,8 @@ namespace Adapters.w3gFiles.Tests
         [Test]
         public async Task TestGetGameSlots()
         {
-            var w3GFileReader = new W3GFileReader();
-            var game = await w3GFileReader.Read("TestGames/1_29.w3g");
+            var w3GFileReader = new W3GFileReader("TestGames/1_29.w3g");
+            var game = await w3GFileReader.ReadAsync();
             Assert.AreEqual(1, game.GameSlots.ToList()[0].PlayerId);
             Assert.AreEqual(Race.NightElve, game.GameSlots.ToList()[0].Race);
             Assert.AreEqual(SlotUsage.Used, game.GameSlots.ToList()[0].SlotUsage);
@@ -95,8 +95,8 @@ namespace Adapters.w3gFiles.Tests
         [Test]
         public async Task TestGetChatMessages()
         {
-            var w3GFileReader = new W3GFileReader();
-            var game = await w3GFileReader.Read("TestGames/1_29.w3g");
+            var w3GFileReader = new W3GFileReader("TestGames/1_29.w3g");
+            var game = await w3GFileReader.ReadAsync();
             var chatMessages = game.ChatMessages.ToList();
             Assert.AreEqual(1, chatMessages[0].PlayerId);
             Assert.AreEqual(2, chatMessages[1].PlayerId);
@@ -109,8 +109,8 @@ namespace Adapters.w3gFiles.Tests
         [Test]
         public async Task TestGetWinners()
         {
-            var w3GFileReader = new W3GFileReader();
-            var game = await w3GFileReader.Read("TestGames/1_29.w3g");
+            var w3GFileReader = new W3GFileReader("TestGames/1_29.w3g");
+            var game = await w3GFileReader.ReadAsync();
             var players = game.Winners.ToList();
             Assert.AreEqual(2, players[0].PlayerId);
             Assert.AreEqual("Jason.Z", players[0].Name);
