@@ -6,10 +6,10 @@ namespace Adapters.w3gFiles
 {
     public class WinnerDeclarer : IWinnerDeclarer
     {
-        public IEnumerable<Player> GetWinners(IEnumerable<PlayerLeft> leftMessages, IEnumerable<Player> allPlayers, uint playerSavedID)
+        public IEnumerable<Player> GetWinners(IEnumerable<PlayerLeft> leftMessages, IEnumerable<Player> allPlayers, uint playerSavedId)
         {
             var playerLefts = leftMessages.ToList();
-            var gameOwnerLeft = playerLefts.First(player => player.PlayerId == playerSavedID);
+            var gameOwnerLeft = playerLefts.First(player => player.PlayerId == playerSavedId);
             var players = allPlayers.ToList();
             var gameOwner = players.First(player => player.PlayerId == gameOwnerLeft.PlayerId);
             switch (gameOwnerLeft.Reason)

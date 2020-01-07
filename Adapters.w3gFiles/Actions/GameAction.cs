@@ -9,11 +9,6 @@ namespace Adapters.w3gFiles.Actions
             OccuredOn = occuredOn;
         }
 
-        protected GameAction()
-        {
-            OccuredOn = default;
-        }
-
         public TimeSpan OccuredOn { get; }
     }
 }

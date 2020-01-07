@@ -336,7 +336,7 @@ namespace Adapters.w3gFiles
                         var unknownWinFlag = _gameActionBytes.DWord(offset + 10);
                         offset += 14;
 
-                        yield return new PlayerLeft(playerId, reason, result, unknownWinFlag);
+                        yield return new PlayerLeft(playerId, reason, result, unknownWinFlag, TimeSpan.FromMilliseconds(currentGameTimer));
                         break;
                     }
                     // all unecessary stuff below

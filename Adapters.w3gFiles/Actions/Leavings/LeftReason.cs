@@ -2,6 +2,6 @@
 {
     public enum LeftReason
     {
-        Undefined, ConnectionClosedByServer, ConnectionClosedByGame
+        Undefined, ConnectionClosedByServer, ConnectionClosedByGame, Unknown
     }
 }

@@ -1,4 +1,6 @@
-﻿namespace Adapters.w3gFiles.Actions.Leavings
+﻿using System;
+
+namespace Adapters.w3gFiles.Actions.Leavings
 {
     public class PlayerLeft : GameAction
     {
@@ -7,7 +9,7 @@
         public LeftReason Reason { get; }
         public LeftResult Result { get; }
 
-        public PlayerLeft(int playerId, LeftReason reason, LeftResult result, uint unknownWinFlag)
+        public PlayerLeft(int playerId, LeftReason reason, LeftResult result, uint unknownWinFlag, TimeSpan occuredOn) : base(occuredOn)
         {
             PlayerId = playerId;
             Reason = reason;
@@ -15,7 +17,7 @@
             UnknownWinFlag = unknownWinFlag;
         }
 
-        public PlayerLeft(int playerId, uint reason, uint result, uint unknownWinFlag)
+        public PlayerLeft(int playerId, uint reason, uint result, uint unknownWinFlag, TimeSpan occuredOn) : base(occuredOn)
         {
             PlayerId = playerId;
 
@@ -25,7 +27,7 @@
                     break;
                 case 0x0C: Reason = LeftReason.ConnectionClosedByGame;
                     break;
-                case 0x0E: Reason = LeftReason.Undefined;
+                case 0x0E: Reason = LeftReason.Unknown;
                     break;
             }
 

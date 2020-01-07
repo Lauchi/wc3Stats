@@ -23,10 +23,10 @@ namespace Adapters.w3gFiles
         public Wc3Game Read()
         {
             var fileBytes = File.ReadAllBytes(_filePath);
-            return ReadW33Game(fileBytes);
+            return ReadW3Game(fileBytes);
         }
 
-        private Wc3Game ReadW33Game(byte[] fileBytes)
+        private Wc3Game ReadW3Game(byte[] fileBytes)
         {
             _mapping.SetBytes(fileBytes);
 
