@@ -301,8 +301,8 @@ namespace Adapters.w3gFiles
             while (_gameActionBytes[offset] != 0)
                 switch (_gameActionBytes[offset])
                 {
-                    case GameActions.PlayerActionNew:
-                    case GameActions.PlayerActionOld:
+                    case GameActions.ActionBlockNew:
+                    case GameActions.ActionBlockOld:
                     {
                         var bytesForActions = new[] {_gameActionBytes[offset + 1], _gameActionBytes[offset + 2]}.Word();
                         offset += 3 + bytesForActions;
@@ -312,9 +312,17 @@ namespace Adapters.w3gFiles
                     {
                         var playerId = (int) _gameActionBytes[offset + 1];
                         var messageCount = new[] {_gameActionBytes[offset + 2], _gameActionBytes[offset + 3]}.Word();
+                        var word = new[]
+                        {
+                            _gameActionBytes[offset + 5],
+                            _gameActionBytes[offset + 6],
+                            _gameActionBytes[offset + 7],
+                            _gameActionBytes[offset + 8]
+                        }.DWord();
+                        var channel = GetMessageChannel(word);
                         var message = _gameActionBytes.UntilNull(offset + 9);
                         offset += 4 + messageCount;
-                        yield return new ChatMessage(playerId, message, default);
+                        yield return new ChatMessage(playerId, message, channel, default);
                         break;
                     }
                     case GameActions.LeftGame:
@@ -349,6 +357,18 @@ namespace Adapters.w3gFiles
                             $"Could not parse Actiontype0x{BitConverter.ToString(new[] {_gameActionBytes[offset]})} on Location {offset}, will abort parsing Actions, actionlist is most likely not comprehensive");
                         yield break;
                 }
+        }
+
+        private ChatChannel GetMessageChannel(uint gameActionByte)
+        {
+            switch (gameActionByte)
+            {
+                case 0x00: return ChatChannel.All;
+                case 0x01: return ChatChannel.Allies;
+                case 0x02: return ChatChannel.Observer;
+                case 0x03: return ChatChannel.Whisper;
+                default: return ChatChannel.Unknown;
+            }
         }
     }
 }

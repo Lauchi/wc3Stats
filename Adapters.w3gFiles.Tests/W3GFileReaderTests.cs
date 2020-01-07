@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Adapters.w3gFiles.Actions;
 using NUnit.Framework;
 
 namespace Adapters.w3gFiles.Tests
@@ -137,6 +138,7 @@ namespace Adapters.w3gFiles.Tests
             var game = w3GFileReader.Read();
             var chatMessages = game.ChatMessages.ToList();
             Assert.AreEqual("gl hf", chatMessages[0].Message);
+            Assert.AreEqual(ChatChannel.All, chatMessages[0].Channel);
         }
 
         [Test]
