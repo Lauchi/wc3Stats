@@ -246,6 +246,7 @@ namespace Adapters.w3gFiles
             switch (gameTypeByte)
             {
                 case 0x01: return GameMode.Custom;
+                case 0x02: return GameMode.Custom;
                 case 0x08: return GameMode.Ladder;
                 default: return GameMode.Undefined;
             }

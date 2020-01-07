@@ -66,6 +66,18 @@ namespace Adapters.w3gFiles.Tests
         }
 
         [Test]
+        [TestCase("TestGames/1_29.w3g", GameMode.Ladder)]
+        [TestCase("TestGames/1_31.3_custom.w3g", GameMode.Custom)]
+        [TestCase("TestGames/1_31.3_ladder.w3g", GameMode.Ladder)]
+        public void TestReadGameMode(string replay, GameMode gameType)
+        {
+            var w3GFileReader = new W3GFileReader(replay);
+            var game = w3GFileReader.Read();
+            Assert.AreEqual(1, game.Host.PlayerId);
+            Assert.AreEqual(gameType, game.GameType);
+        }
+
+        [Test]
         [TestCase("TestGames/1_29.w3g", "(4)TwistedMeadows", "BNet")]
         [TestCase("TestGames/1_31.3_custom.w3g", "(2)northernisles", "btv4b")]
         [TestCase("TestGames/1_31.3_ladder.w3g", "(2)AncientIsles", "BNet")]
