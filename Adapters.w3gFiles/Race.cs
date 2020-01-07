@@ -2,14 +2,13 @@
 {
     public enum Race
     {
+        Undefined,
         CustomGame,
         Human,
         NightElve,
         Orc,
         Undead,
         Random,
-        Fixed,
-        Undefined,
-        Unknown
+        Fixed
     }
 }

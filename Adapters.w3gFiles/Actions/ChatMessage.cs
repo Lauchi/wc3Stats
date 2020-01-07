@@ -18,6 +18,6 @@ namespace Adapters.w3gFiles.Actions
 
     public enum ChatChannel
     {
-        Unknown, All, Allies, Observer, Whisper
+        Undefined, All, Allies, Observer, Whisper
     }
 }

@@ -2,6 +2,6 @@
 {
     public enum LeftResult
     {
-        PlayerDisconnected, PlayerLeft, PlayerWasCompletelyErased, PlayerWon, Draw, PlayerLeftAsObserver
+        Undefined, PlayerDisconnected, PlayerLeft, PlayerWasCompletelyErased, PlayerWon, Draw, PlayerLeftAsObserver
     }
 }

@@ -25,7 +25,7 @@
                     break;
                 case 0x0C: Reason = LeftReason.ConnectionClosedByGame;
                     break;
-                case 0x0E: Reason = LeftReason.Unknown;
+                case 0x0E: Reason = LeftReason.Undefined;
                     break;
             }
 

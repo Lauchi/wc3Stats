@@ -2,8 +2,8 @@
 {
     public enum SlotUsage
     {
+        Undefined,
         Empty,
-        Unknown,
         Used,
         Closed
     }

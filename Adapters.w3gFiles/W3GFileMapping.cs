@@ -154,7 +154,7 @@ namespace Adapters.w3gFiles
                 case 0X08: return Race.Undead;
                 case 0X20: return Race.Random;
                 case 0X40: return Race.Fixed;
-                default: return Race.Unknown;
+                default: return Race.Undefined;
             }
         }
 
@@ -165,7 +165,7 @@ namespace Adapters.w3gFiles
                 case 0X00: return SlotUsage.Empty;
                 case 0X01: return SlotUsage.Closed;
                 case 0X02: return SlotUsage.Used;
-                default: return SlotUsage.Unknown;
+                default: return SlotUsage.Undefined;
             }
         }
 
@@ -370,7 +370,7 @@ namespace Adapters.w3gFiles
                 case 0x01: return ChatChannel.Allies;
                 case 0x02: return ChatChannel.Observer;
                 case 0x03: return ChatChannel.Whisper;
-                default: return ChatChannel.Unknown;
+                default: return ChatChannel.Undefined;
             }
         }
     }

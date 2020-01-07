@@ -2,6 +2,7 @@
 {
     public enum PlayerMode
     {
+        Undefined,
         MultiPlayer,
         SinglePlayer
     }
