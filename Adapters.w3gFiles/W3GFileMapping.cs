@@ -298,6 +298,7 @@ namespace Adapters.w3gFiles
         public IEnumerable<GameAction> GetActions()
         {
             var offset = 0;
+            long currentGameTimer = 0;
             while (_gameActionBytes[offset] != 0)
                 switch (_gameActionBytes[offset])
                 {
@@ -305,6 +306,8 @@ namespace Adapters.w3gFiles
                     case GameActions.ActionBlockOld:
                     {
                         var bytesForActions = new[] {_gameActionBytes[offset + 1], _gameActionBytes[offset + 2]}.Word();
+                        var timeStampIncrement = new[] {_gameActionBytes[offset + 3], _gameActionBytes[offset + 4]}.Word();
+                        currentGameTimer += timeStampIncrement;
                         offset += 3 + bytesForActions;
                         break;
                     }
@@ -322,7 +325,7 @@ namespace Adapters.w3gFiles
                         var channel = GetMessageChannel(word);
                         var message = _gameActionBytes.UntilNull(offset + 9);
                         offset += 4 + messageCount;
-                        yield return new ChatMessage(playerId, message, channel, default);
+                        yield return new ChatMessage(playerId, message, channel, TimeSpan.FromMilliseconds(currentGameTimer));
                         break;
                     }
                     case GameActions.LeftGame:

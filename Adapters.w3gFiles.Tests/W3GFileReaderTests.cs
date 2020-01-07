@@ -129,16 +129,17 @@ namespace Adapters.w3gFiles.Tests
         }
 
         [Test]
-        [TestCase("TestGames/1_29.w3g")]
-        [TestCase("TestGames/1_31.3_custom.w3g")]
-        [TestCase("TestGames/1_31.3_ladder.w3g")]
-        public void TestGetChatMessages(string replay)
+        [TestCase("TestGames/1_29.w3g", 0, 8, 319)]
+        [TestCase("TestGames/1_31.3_custom.w3g", 0, 9, 7)]
+        [TestCase("TestGames/1_31.3_ladder.w3g", 0, 8, 84)]
+        public void TestGetChatMessages(string replay, int minutes, int seconds, int milliseconds)
         {
             var w3GFileReader = new W3GFileReader(replay);
             var game = w3GFileReader.Read();
             var chatMessages = game.ChatMessages.ToList();
             Assert.AreEqual("gl hf", chatMessages[0].Message);
             Assert.AreEqual(ChatChannel.All, chatMessages[0].Channel);
+            Assert.AreEqual(new TimeSpan(0, 0, minutes, seconds, milliseconds), chatMessages[0].OccuredOn);
         }
 
         [Test]
