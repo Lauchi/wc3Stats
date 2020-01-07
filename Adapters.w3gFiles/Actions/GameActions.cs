@@ -1,4 +1,4 @@
-﻿namespace Adapters.w3gFiles
+﻿namespace Adapters.w3gFiles.Actions
 {
     public static class GameActions
     {

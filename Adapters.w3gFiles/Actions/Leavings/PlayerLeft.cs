@@ -1,6 +1,6 @@
-﻿namespace Adapters.w3gFiles
+﻿namespace Adapters.w3gFiles.Actions.Leavings
 {
-    public class PlayerLeft : IGameAction
+    public class PlayerLeft : GameAction
     {
         public int PlayerId { get; }
         public uint UnknownWinFlag { get; }

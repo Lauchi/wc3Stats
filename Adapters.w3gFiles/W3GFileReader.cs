@@ -2,6 +2,8 @@
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Adapters.w3gFiles.Actions;
+using Adapters.w3gFiles.Actions.Leavings;
 
 namespace Adapters.w3gFiles
 {

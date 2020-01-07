@@ -1,4 +1,4 @@
-﻿namespace Adapters.w3gFiles
+﻿namespace Adapters.w3gFiles.Actions.Leavings
 {
     public enum LeftResult
     {

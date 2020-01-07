@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Text;
+using Adapters.w3gFiles.Actions;
+using Adapters.w3gFiles.Actions.Leavings;
 
 namespace Adapters.w3gFiles
 {
@@ -15,8 +16,6 @@ namespace Adapters.w3gFiles
         private byte[] _fileBytesContent;
         private byte[] _fileBytesHeader;
         private byte[] _gameActionBytes;
-
-        public ICollection<ChatMessage> Messages { get; } = new Collection<ChatMessage>();
 
         public ExpansionType GetExpansionType()
         {
@@ -295,7 +294,7 @@ namespace Adapters.w3gFiles
             }
         }
 
-        public IEnumerable<IGameAction> GetActions()
+        public IEnumerable<GameAction> GetActions()
         {
             var offset = 0;
             while (_gameActionBytes[offset] != 0)
@@ -314,7 +313,7 @@ namespace Adapters.w3gFiles
                         var messageCount = new[] {_gameActionBytes[offset + 2], _gameActionBytes[offset + 3]}.Word();
                         var message = _gameActionBytes.UntilNull(offset + 9);
                         offset += 4 + messageCount;
-                        yield return new ChatMessage(playerId, message);
+                        yield return new ChatMessage(playerId, message, default);
                         break;
                     }
                     case GameActions.LeftGame:
